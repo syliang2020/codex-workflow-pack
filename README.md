@@ -54,7 +54,7 @@
 - `RELEASE.md`
 - 可选 `PROGRESS.md`，仅在需要单独进度视图时生成
 
-`DATA-MODEL.md` 不是默认生成文件。只有在用户确认数据库结构、迁移、回填或回滚文档属于当前文档包范围时，才创建或更新。
+`DATABASE-DESIGN.md` 不是默认必生成文件。只有在本次需求涉及数据库变更、数据模型、表结构、字段、索引、数据迁移、历史数据兼容或持久化数据结构时，才创建或更新；它在 feature-doc-pack 阶段只作为数据库设计草案，不默认输出最终可执行 DDL。
 
 ## 核心原则
 
@@ -221,6 +221,7 @@ feature-doc-pack/
     api-contract.md
     business-rules.md
     data-model.md
+    database-design.md
     doc-levels.md
     quality-gates.md
     review-checklist.md

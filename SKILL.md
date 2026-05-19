@@ -76,30 +76,45 @@ description: Use when a task may need collaboration docs for a feature slice bec
 
 详细级别说明见 [doc-levels.md](references/doc-levels.md)。
 
-- 最小文档：`PLAN.md`，涉及接口时加 `API-CONTRACT.md`，业务规则复杂时加 `BUSINESS-RULES.md`。
-- 标准文档包：`PLAN.md`、`BUSINESS-RULES.md`、`API-CONTRACT.md`、`TASK-BOARD.md`、`TEST-CASES.md`，其中 `TASK-BOARD.md` 必须包含进度视图。
-- 完整文档包：标准文档包加 `CHANGELOG.md`、`ISSUES.md`、`RELEASE.md`；多人长期协作或用户要求看进度时，可加 `PROGRESS.md`。
-- `DATA-MODEL.md` 不是默认文档包成员。只有用户确认、项目已有同类文档、或用户选择完整文档包且明确涉及数据库迁移/回填/回滚时，才生成或更新；不要为了解决内容归属问题静默新增。
+- 最小文档：`PLAN.md`，涉及接口时加 `API-CONTRACT.md`，业务规则复杂时加 `BUSINESS-RULES.md`，涉及数据库变更时可生成或更新 `DATABASE-DESIGN.md`。
+- 标准文档包：`PLAN.md`、`BUSINESS-RULES.md`、`API-CONTRACT.md`、`TASK-BOARD.md`、`TEST-CASES.md`；涉及数据库变更时生成或更新 `DATABASE-DESIGN.md`；其中 `TASK-BOARD.md` 必须包含进度视图。
+- 完整文档包：标准文档包加 `CHANGELOG.md`、`ISSUES.md`、`RELEASE.md`；涉及数据库变更时生成或更新 `DATABASE-DESIGN.md`；多人长期协作或用户要求看进度时，可加 `PROGRESS.md`。
+- `DATABASE-DESIGN.md` 不是每次都必生成的文档；只有本次需求涉及数据库变更、数据模型、表结构、字段、索引、数据关系、数据迁移或持久化数据结构时才生成或更新。
+
+## Database Design Policy
+
+在本 skill 已进入生成或更新协作文档流程后，当本次需求涉及数据库变更、数据模型、表结构、字段、索引、数据关系、数据迁移、历史数据兼容或需要持久化的数据结构时，必须生成或更新 `DATABASE-DESIGN.md`。
+
+详细触发条件、推荐结构和质量门槛见 [database-design.md](references/database-design.md)。
+
+`DATABASE-DESIGN.md` 在 feature-doc-pack 阶段只作为数据库设计草案，用于团队评审和后端分工。不要在该阶段直接输出最终可执行 DDL，除非用户明确要求。
+
+## Output Policy
+
+识别本次改动范围时，必须额外判断是否涉及数据库变更、数据模型、表结构、字段、索引或数据迁移。
+
+如果涉及，则生成或更新 `DATABASE-DESIGN.md`。该文件只承接数据库设计草案和评审信息，不把最终 DDL 作为 feature-doc-pack 阶段的默认产物。
 
 ## Workflow
 
 1. 如果任务同时命中后端设计审查和协作文档场景，先完成 `backend-feature-design-review`，再决定是否生成协作文档。
-2. 识别文档阶段、功能范围、角色、团队人数、仓库、接口变更、联调需求、提测/上线需求、复杂业务规则。
+2. 识别文档阶段、功能范围、角色、团队人数、仓库、接口变更、联调需求、提测/上线需求、复杂业务规则、数据库变更、数据模型、表结构、字段、索引和数据迁移。
 3. 区分已确认事实、用户举例/反问、合理推断和待确认事项；团队人数、负责人、排期、优先级没有明确确认时，只能写待确认或待分配。
 4. 即使团队人数或负责人待确认，也必须先按任务包定义清楚开发边界、输入依赖、输出物、联调对象和完成标准；待确认只能影响“谁负责”，不能影响“做什么”和“做到什么程度”。
 5. 如果需要文档，先询问用户并记录本次选择。
 6. 生成或更新文档前，锁定当前阶段范围、明确不做内容和后续阶段内容。
 7. 对开发前或多人协作文档，先建立追踪编号规则和链接规则：`BR-xxx`、`API-xxx`、`TASK-xxx`、`TC-xxx` 都必须能点击跳转到对应定义或详情。
-8. 如果发现需要超出当前文档包清单的新文件，例如 `DATA-MODEL.md`、`RELEASE.md`、`PROGRESS.md`，先在现有文档的待确认事项中说明原因，并询问用户是否新增，不要直接创建。
-9. 按场景加载下方 reference，避免一次性读取所有细节。
-10. 生成或更新后执行质量检查：阶段一致、范围一致、接口可联调、规则可执行、任务可分工、进度可查看、测试可验收、编号可追踪、未确认事项没有被写成事实。
+8. 如果涉及数据库变更，生成或更新 `DATABASE-DESIGN.md`，并明确它是数据库设计草案，不是最终 DDL。
+9. 如果发现需要超出当前文档包清单的新文件，例如 `RELEASE.md`、`PROGRESS.md`，先在现有文档的待确认事项中说明原因，并询问用户是否新增，不要直接创建。
+10. 按场景加载下方 reference，避免一次性读取所有细节。
+11. 生成或更新后执行质量检查：阶段一致、范围一致、接口可联调、规则可执行、任务可分工、进度可查看、测试可验收、编号可追踪、未确认事项没有被写成事实。
 
 ## Reference Loading
 
 - 生成任意文档包时，读取 [quality-gates.md](references/quality-gates.md)。
 - 涉及复杂业务规则时，读取 [business-rules.md](references/business-rules.md)。
 - 涉及新增接口、接口字段或前后端联调时，读取 [api-contract.md](references/api-contract.md)。
-- 涉及数据库结构、索引、迁移、回填或回滚时，先判断是否已有项目迁移脚本或用户是否确认新增 `DATA-MODEL.md`；确认后再读取 [data-model.md](references/data-model.md)。
+- 涉及数据库变更、数据模型、表结构、字段、索引或数据迁移时，读取 [database-design.md](references/database-design.md)，并生成或更新 `DATABASE-DESIGN.md`；该文件只作为数据库设计草案，除非用户明确要求，不输出最终可执行 DDL。
 - 需要任务拆分或测试用例时，读取 [task-board-and-tests.md](references/task-board-and-tests.md)。
 - 用户要求检查已有协作文档时，读取 [review-checklist.md](references/review-checklist.md)。
 
@@ -135,4 +150,5 @@ description: Use when a task may need collaboration docs for a feature slice bec
 - 不要把某个项目的字段名、业务模式、固定枚举、数据库表、接口路径或响应对象写进 skill 模板示例；需要举例时使用 `primaryField`、`legacyField`、`ExampleVO`、`table_name.column_name` 这类中性占位。
 - 不要把复杂业务规则全部压进 `PLAN.md`。
 - 不要在 `BUSINESS-RULES.md` 中写 `ALTER TABLE`、`CREATE INDEX`、迁移 SQL、回填 SQL 或回滚 SQL。
-- 不要未经确认新增 `DATA-MODEL.md`。如果当前文档包没有该文件，应先在 `PLAN.md` 或 `TASK-BOARD.md` 记录“涉及数据库变更，迁移脚本/数据模型文档待确认”，并询问用户是否新增数据库变更文档。
+- 不要把 `DATABASE-DESIGN.md` 变成每次都必生成；只有涉及数据库变更、数据模型、表结构、字段、索引或数据迁移时才生成或更新。
+- 不要把最终可执行 DDL 作为 feature-doc-pack 阶段的默认产物；`DATABASE-DESIGN.md` 默认只写数据库设计草案、评审信息、分工依据和待确认项。
