@@ -286,8 +286,6 @@ feature-doc-pack/
     task-board-and-tests.md
 ```
 
-`references/data-model.md` 仅保留为旧引用兼容入口；新的数据库设计草案统一使用 `DATABASE-DESIGN.md`。
-
 ## 设计边界
 
 这个 skill 应保持项目中立。
