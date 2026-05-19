@@ -21,6 +21,7 @@ description: Use when a task may need collaboration docs for a feature slice bec
 - `API-CONTRACT.md` 必须让开发者在当前接口段落附近看到请求/响应字段明细；对象定义链接只能补充，不能代替接口字段表。
 - Markdown 链接不能放在反引号代码片段里；需要展示类型时，写成 `List，元素类型：` 后接普通 Markdown 对象链接，链接目标使用 `API-CONTRACT.md#schema-xxxvo`，保证对象名可点击。
 - 标准及完整文档包必须能看出进度；业务规则、接口、任务和测试应建立可点击的追踪编号。
+- 文档生成或更新后，必须先按审查清单做文档审查并修正问题，再进入验收；不要把链接校验、文件存在或格式检查直接当成文档验收。
 - 与 superpowers 协作时，本 skill 只负责协作文档判断和质量门槛；计划、调试、TDD、验证仍按对应 superpowers skill 推进。
 - `REQUIREMENTS.md` 是可选前置模式，只用于需求边界不清时收敛输入；它不是三档文档包的默认文件。
 
@@ -113,6 +114,20 @@ description: Use when a task may need collaboration docs for a feature slice bec
 
 识别本次改动范围时，也要判断是否只是输入不清。如果需求边界不清且用户选择前置模式，则只输出 `REQUIREMENTS.md` 草案并停止。
 
+## Review Before Acceptance
+
+生成或更新文档后，必须先审查，再验收。
+
+审查用于判断文档内容是否能指导协作和开发，至少检查：
+
+- 阶段、范围、角色、任务、规则、接口、数据库设计、测试和发布状态是否一致。
+- 是否存在未确认事项被写成已确认事实。
+- 是否存在 `PLAN.md` 的范围和其它文档冲突。
+- 是否存在接口字段、业务规则、数据库设计、任务拆分、测试步骤或发布门禁缺口。
+- 是否存在关联编号不可点击、目标不存在、目标只能打开文件但不能定位到对象的问题。
+
+只有审查问题修正后，才进入验收。验收用于验证文件、链接、锚点、UTF-8、禁用内容、文档清单和质量门槛是否满足要求。最终回复必须区分“审查结果”和“验收结果”。
+
 ## Workflow
 
 1. 如果任务同时命中后端设计审查和协作文档场景，先完成 `backend-feature-design-review`，再决定是否生成协作文档。
@@ -126,8 +141,9 @@ description: Use when a task may need collaboration docs for a feature slice bec
 9. 如果涉及数据库变更，生成或更新 `DATABASE-DESIGN.md`，并明确它是数据库设计草案，不是最终 DDL；没有已确认 DB 设计时，数据库实现任务必须标记为阻塞或待确认。
 10. 如果发现需要超出当前文档包清单的新文件，例如 `RELEASE.md`、`PROGRESS.md`，先在现有文档的待确认事项中说明原因，并询问用户是否新增，不要直接创建。
 11. 按场景加载下方 reference，避免一次性读取所有细节。
-12. 生成或更新后执行质量检查：阶段一致、范围一致、接口可联调、规则可执行、任务可分工、进度可查看、测试可验收、编号可追踪、未确认事项没有被写成事实。
-13. 协作文档生成完成后停止在文档交付边界；后续实现交给 `brainstorming`、`writing-plans`、`executing-plans`、`test-driven-development`、`requesting-code-review` 或其它对应技能。
+12. 生成或更新后先执行文档审查：阶段一致、范围一致、接口可联调、规则可执行、任务可分工、进度可查看、测试可验收、编号可追踪、未确认事项没有被写成事实；发现问题必须先修正文档。
+13. 文档审查通过后再执行验收：检查文件清单、链接和锚点、编码、禁用内容、数据库设计门禁、变更发布门禁和用户要求；最终输出必须分别说明审查结论和验收结论。
+14. 协作文档生成完成后停止在文档交付边界；后续实现交给 `brainstorming`、`writing-plans`、`executing-plans`、`test-driven-development`、`requesting-code-review` 或其它对应技能。
 
 ## Reference Loading
 
@@ -176,3 +192,4 @@ description: Use when a task may need collaboration docs for a feature slice bec
 - 不要把最终可执行 DDL 作为 feature-doc-pack 阶段的默认产物；`DATABASE-DESIGN.md` 默认只写数据库设计草案、评审信息、分工依据和待确认项。
 - 不要在 `REQUIREMENTS.md` 未确认时继续生成协作文档包或推进实现计划。
 - 不要在缺少已确认数据库设计时，把数据库实现、迁移、回填或最终 DDL 任务标成可直接开工。
+- 不要在未完成文档审查时直接宣称验收通过；验收前必须先审查内容质量和协作可用性。
