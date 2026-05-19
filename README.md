@@ -22,9 +22,46 @@
 
 `feature-doc-pack` 关注的是能服务真实协作的文档，而不是只追求形式完整。
 
+## 四层架构
+
+这个 skill 把协作文档拆成四层，避免把需求澄清、协作事实、技术实现和发布治理混在一起：
+
+- 输入层：承接 PRD、口述需求、截图、聊天记录和待澄清问题。边界不清时先生成 `REQUIREMENTS.md` 草案，并停下来等待确认。
+- 协作事实层：承接当前 feature 切片已经确认的目标、规则、接口、任务和测试，即 `PLAN.md`、`BUSINESS-RULES.md`、`API-CONTRACT.md`、`TASK-BOARD.md`、`TEST-CASES.md`。
+- 技术设计层：承接需要评审的技术草案，例如涉及数据库变更时的 `DATABASE-DESIGN.md`。它是设计草案，不是默认最终 DDL。
+- 变更发布层：承接变更记录、问题跟踪和发布检查，即 `CHANGELOG.md`、`ISSUES.md`、`RELEASE.md`。
+
+## PRD 与 REQUIREMENTS.md
+
+如果项目已经有清晰 PRD、需求文档或任务说明，feature-doc-pack 可以直接按用户选择生成最小、标准或完整文档包。
+
+如果输入只有口述、截图、聊天记录、零散反馈，或者目标、范围、角色、规则、接口、数据边界不清，推荐先使用可选前置模式：只生成 `REQUIREMENTS.md` 草案。`REQUIREMENTS.md` 用于收敛需求事实和待确认问题，不属于最小、标准、完整三档文档包的默认文件清单。
+
+确认 `REQUIREMENTS.md` 后，再进入协作文档包；协作文档完成后，后续实现应交给对应的设计、计划、编码、测试或审查流程。
+
+```mermaid
+flowchart LR
+  A["PRD / 口述需求 / 截图 / 聊天记录"] --> B{"需求边界清楚吗？"}
+  B -->|"不清楚"| C["REQUIREMENTS.md 草案"]
+  C --> D["用户确认范围与待确认项"]
+  B -->|"清楚"| E["选择文档级别"]
+  D --> E
+  E --> F["feature-doc-pack 协作文档"]
+  F --> G["brainstorming / writing-plans"]
+  G --> H["executing-plans / TDD / review"]
+```
+
 ## 生成哪些文档
 
 这个 skill 支持三个文档级别。
+
+### 可选前置模式
+
+当需求边界不清时，先只生成：
+
+- `REQUIREMENTS.md`
+
+生成后停止，等待用户确认。它不自动触发后续 `PLAN.md`、`API-CONTRACT.md` 或其它文档。
 
 ### 最小文档包
 
@@ -215,18 +252,41 @@ feature-doc-pack/SKILL.md
 
 ```text
 feature-doc-pack/
+  AGENTS.example.md
   SKILL.md
   README.md
+  examples/
+    _templates/
+      API-CONTRACT.template.md
+      BUSINESS-RULES.template.md
+      CHANGELOG.template.md
+      DATABASE-DESIGN.template.md
+      PLAN.template.md
+      REQUIREMENTS.template.md
+      TASK-BOARD.template.md
+      TEST-CASES.template.md
+    notification-template-management/
+      API-CONTRACT.md
+      BUSINESS-RULES.md
+      CHANGELOG.md
+      DATABASE-DESIGN.md
+      PLAN.md
+      REQUIREMENTS.md
+      TASK-BOARD.md
+      TEST-CASES.md
   references/
     api-contract.md
     business-rules.md
-    data-model.md
+    change-management.md
     database-design.md
     doc-levels.md
     quality-gates.md
+    requirements-capture.md
     review-checklist.md
     task-board-and-tests.md
 ```
+
+`references/data-model.md` 仅保留为旧引用兼容入口；新的数据库设计草案统一使用 `DATABASE-DESIGN.md`。
 
 ## 设计边界
 
