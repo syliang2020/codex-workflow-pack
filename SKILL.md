@@ -87,8 +87,8 @@ description: Use when a task may need collaboration docs for a feature slice bec
 详细级别说明见 [doc-levels.md](references/doc-levels.md)。
 
 - 最小文档：`PLAN.md`，涉及接口时加 `API-CONTRACT.md`，业务规则复杂时加 `BUSINESS-RULES.md`，涉及数据库变更时可生成或更新 `DATABASE-DESIGN.md`。
-- 标准文档包：`PLAN.md`、`BUSINESS-RULES.md`、`API-CONTRACT.md`、`TASK-BOARD.md`、`TEST-CASES.md`；涉及数据库变更时生成或更新 `DATABASE-DESIGN.md`；其中 `TASK-BOARD.md` 必须包含进度视图。
-- 完整文档包：标准文档包加 `CHANGELOG.md`、`ISSUES.md`、`RELEASE.md`；涉及数据库变更时生成或更新 `DATABASE-DESIGN.md`；多人长期协作或用户要求看进度时，可加 `PROGRESS.md`。
+- 标准文档包：`PLAN.md`、`BUSINESS-RULES.md`、`API-CONTRACT.md`、`TASK-BOARD.md`、`TEST-CASES.md`；涉及数据库变更时生成或更新 `DATABASE-DESIGN.md`；其中 `TASK-BOARD.md` 必须包含任务级进度视图。
+- 完整文档包：标准文档包加 `CHANGELOG.md`、`ISSUES.md`、`RELEASE.md`；涉及数据库变更时生成或更新 `DATABASE-DESIGN.md`；`PROGRESS.md` 只是可选文件，仅在多人长期协作、任务板过大或用户要求单独进度视图时生成。
 - `DATABASE-DESIGN.md` 不是每次都必生成的文档；只有本次需求涉及数据库变更、数据模型、表结构、字段、索引、数据关系、数据迁移或持久化数据结构时才生成或更新。
 - `REQUIREMENTS.md` 是输入层前置文档，不加入最小、标准或完整文档包的默认清单。
 
@@ -113,6 +113,19 @@ description: Use when a task may need collaboration docs for a feature slice bec
 如果涉及，则生成或更新 `DATABASE-DESIGN.md`。该文件只承接数据库设计草案和评审信息，不把最终 DDL 作为 feature-doc-pack 阶段的默认产物。
 
 识别本次改动范围时，也要判断是否只是输入不清。如果需求边界不清且用户选择前置模式，则只输出 `REQUIREMENTS.md` 草案并停止。
+
+## Progress Tracking Policy
+
+默认不要为进度单独创建新文档。
+
+进度记录按以下职责拆分：
+
+- `TASK-BOARD.md`：记录任务包总体状态、负责人、依赖、阻塞、接口进度摘要、测试进度摘要和最后更新时间。
+- `API-CONTRACT.md`：记录接口级开发状态和联调状态。
+- `TEST-CASES.md`：记录测试用例执行状态、执行人、执行时间和缺陷备注。
+- `PROGRESS.md`：仅在多人长期协作、任务板过大、跨多个迭代周期、用户明确要求单独看进度，或已有文档无法承载进度时生成。
+
+不要默认生成 `TASK-PROGRESS.md`。不要把每日开发流水写入 `API-CONTRACT.md` 或 `TEST-CASES.md`。不要把接口状态只写在 `TASK-BOARD.md` 中而不更新对应接口；也不要把测试执行结果只写在 `TASK-BOARD.md` 中而不更新对应测试用例。
 
 ## Review Before Acceptance
 
@@ -139,11 +152,12 @@ description: Use when a task may need collaboration docs for a feature slice bec
 7. 生成或更新文档前，锁定当前阶段范围、明确不做内容和后续阶段内容。
 8. 对开发前或多人协作文档，先建立追踪编号规则和链接规则：`BR-xxx`、`API-xxx`、`DB-xxx`、`TASK-xxx`、`TC-xxx` 都必须能点击跳转到对应定义或详情。
 9. 如果涉及数据库变更，生成或更新 `DATABASE-DESIGN.md`，并明确它是数据库设计草案，不是最终 DDL；没有已确认 DB 设计时，数据库实现任务必须标记为阻塞或待确认。
-10. 如果发现需要超出当前文档包清单的新文件，例如 `RELEASE.md`、`PROGRESS.md`，先在现有文档的待确认事项中说明原因，并询问用户是否新增，不要直接创建。
-11. 按场景加载下方 reference，避免一次性读取所有细节。
-12. 生成或更新后先执行文档审查：阶段一致、范围一致、接口可联调、规则可执行、任务可分工、进度可查看、测试可验收、编号可追踪、未确认事项没有被写成事实；发现问题必须先修正文档。
-13. 文档审查通过后再执行验收：检查文件清单、链接和锚点、编码、禁用内容、数据库设计门禁、变更发布门禁和用户要求；最终输出必须分别说明审查结论和验收结论。
-14. 协作文档生成完成后停止在文档交付边界；后续实现交给 `brainstorming`、`writing-plans`、`executing-plans`、`test-driven-development`、`requesting-code-review` 或其它对应技能。
+10. 默认使用 `TASK-BOARD.md`、`API-CONTRACT.md` 和 `TEST-CASES.md` 记录进度；只有命中进度单独视图条件时，才询问是否新增 `PROGRESS.md`。
+11. 如果发现需要超出当前文档包清单的新文件，例如 `RELEASE.md`、`PROGRESS.md`，先在现有文档的待确认事项中说明原因，并询问用户是否新增，不要直接创建。
+12. 按场景加载下方 reference，避免一次性读取所有细节。
+13. 生成或更新后先执行文档审查：阶段一致、范围一致、接口可联调、规则可执行、任务可分工、进度可查看、测试可验收、编号可追踪、未确认事项没有被写成事实；发现问题必须先修正文档。
+14. 文档审查通过后再执行验收：检查文件清单、链接和锚点、编码、禁用内容、数据库设计门禁、变更发布门禁和用户要求；最终输出必须分别说明审查结论和验收结论。
+15. 协作文档生成完成后停止在文档交付边界；后续实现交给 `brainstorming`、`writing-plans`、`executing-plans`、`test-driven-development`、`requesting-code-review` 或其它对应技能。
 
 ## Reference Loading
 
@@ -180,6 +194,8 @@ description: Use when a task may need collaboration docs for a feature slice bec
 - 不要写 `` `List<[SomeVO](#schema-somevo)>` `` 这类把链接包进代码片段的格式；这会导致链接无法点击。
 - 开发前接口信息不全时，必须写入 `待确认事项`，不能直接省略。
 - 标准及完整文档包不能只有任务清单，必须能看出状态、负责人或待分配、依赖和阻塞。
+- 不要默认创建 `TASK-PROGRESS.md` 或 `PROGRESS.md`；`PROGRESS.md` 必须有明确的长期协作、任务板过大、跨迭代或用户要求依据。
+- 不要让 `TASK-BOARD.md` 写“已完成”，但关联接口在 `API-CONTRACT.md` 中仍是“未开始”，或关联测试在 `TEST-CASES.md` 中仍是“未执行”；不涉及接口或测试时必须写“不适用”。
 - `待确认` 不能替代开发边界。任务包必须让开发者在没有最终人名时，也能知道自己认领后要改哪些页面、接口、服务、字段和测试。
 - 关键业务规则必须能追踪到接口、开发任务和测试用例；所有关联编号必须是可点击链接；无法追踪时写明缺口。
 - 不要用 `BR-001 至 BR-005`、`TC-010 至 TC-018` 这类范围代替追踪链接。需要多个编号时逐个列出并逐个链接。

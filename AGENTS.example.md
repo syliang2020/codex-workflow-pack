@@ -38,6 +38,18 @@
 - 只读分析任务要明确“不修改文件”。
 - 代码修改任务要明确允许修改的文件或模块，避免多人同时改同一范围。
 
+## Feature docs progress update policy
+
+当使用 feature-doc-pack 生成的文档进行开发时：
+
+1. 不要直接按整个文档包开发，只按 `TASK-BOARD.md` 中指定任务包开发。
+2. 开始开发任务时，更新 `TASK-BOARD.md` 的任务状态为 `开发中`。
+3. 完成接口实现时，更新 `API-CONTRACT.md` 中对应接口的开发状态。
+4. 完成联调时，更新 `API-CONTRACT.md` 中对应接口的联调状态。
+5. 执行测试后，更新 `TEST-CASES.md` 中对应用例的执行状态。
+6. 任务完成前检查三处状态是否一致：`TASK-BOARD.md`、`API-CONTRACT.md`、`TEST-CASES.md`。
+7. 不要默认创建 `PROGRESS.md` 或 `TASK-PROGRESS.md`；只有用户明确要求单独进度文档，或任务板已经无法清晰承载进度时再创建 `PROGRESS.md`。
+
 ## 交付要求
 
 - 修改完成后给出变更摘要、变更文件清单、验证结果、风险和未覆盖点。
