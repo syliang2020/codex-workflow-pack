@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backend Feature Design Review"
+  short_description: "Review backend design before coding."
+  default_prompt: "Use $backend-feature-design-review to review this backend feature design before implementation."
