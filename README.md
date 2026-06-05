@@ -19,7 +19,7 @@ codex-workflow-pack/
 
 ### Public skills
 
-- `feature-doc-pack`：生成和维护 feature 级协作文档，包括计划、业务规则、接口契约、任务看板、测试用例和数据库设计草案。
+- `feature-doc-pack`：生成和维护 feature 级协作文档，包括计划、业务规则、接口契约、任务看板、测试用例和数据库设计草案。详细说明见 [skills/feature-doc-pack/README.md](skills/feature-doc-pack/README.md)。
 - `development-workflow-router`：根据后端、前端、全栈 feature/bugfix 判断任务类型，选择 direct-flow、prompt-preview 或 review-only，并路由到合适的 skills/subagents。
 - `backend-feature-design-review`：后端功能设计和代码审查门禁，重点检查字段语义、命名一致性、分层、校验、事务、save/update 复用、历史数据兼容和测试。
 
