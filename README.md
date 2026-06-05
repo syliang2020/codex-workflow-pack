@@ -25,7 +25,7 @@ codex-workflow-pack/
 
 ### Internal skill
 
-- `playwright-local-runtime`：当前作者 Windows Codex 环境的 Playwright 本机运行约定，包含本机路径和 Node/Chrome/缓存目录策略。它保留在 `internal/skills/` 中，适合作为 private/internal 参考，不建议直接作为通用公开模板使用。详细说明见 [internal/skills/playwright-local-runtime/README.md](internal/skills/playwright-local-runtime/README.md)。
+- `playwright-local-runtime`：Windows Codex 环境下的 Playwright 本机运行模板，使用占位符描述 Node、Chrome、缓存目录、输出目录、profile 目录和 MCP wrapper 的配置位置。它保留在 `internal/skills/` 中，适合作为 private/internal 参考，不建议直接作为通用公开模板使用。详细说明见 [internal/skills/playwright-local-runtime/README.md](internal/skills/playwright-local-runtime/README.md)。
 
 ## 不包含的外部依赖
 
@@ -49,7 +49,7 @@ Copy-Item -Recurse -Force .\skills\development-workflow-router "$env:USERPROFILE
 Copy-Item -Recurse -Force .\skills\backend-feature-design-review "$env:USERPROFILE\.codex\skills\backend-feature-design-review"
 ```
 
-如果你确实使用同类 Windows Playwright 环境，可以按需复制 internal skill：
+如果你确实使用同类 Windows Playwright 环境，可以按需复制 internal skill，并在安装后替换全部路径占位符：
 
 ```powershell
 Copy-Item -Recurse -Force .\internal\skills\playwright-local-runtime "$env:USERPROFILE\.codex\skills\playwright-local-runtime"
@@ -71,11 +71,11 @@ cp -R skills/backend-feature-design-review ~/.codex/skills/backend-feature-desig
 development-workflow-router
 -> superpowers:brainstorming
 -> feature-doc-pack（需要协作文档时先询问）
--> backend-feature-design-review（涉及复杂后端设计时）
+-> backend-feature-design-review（涉及复杂后端设计时，编码前做门禁）
 -> superpowers:writing-plans
 -> superpowers:executing-plans / subagent-driven-development
 -> reviewer / backend-feature-design-review / ui-ux-pro-max
--> Playwright 或接口/单元测试
+-> Playwright 或接口 / 单元测试
 -> verification-before-completion
 ```
 
@@ -96,7 +96,7 @@ development-workflow-router
 - 本仓库只维护作者自建或改造后的 Codex skills。
 - 不把 `.codex` 运行态目录、会话、日志、鉴权信息、缓存、worktrees 或项目私有路径放入仓库。
 - 不把具体项目的字段名、表名、接口路径、业务枚举、服务名写进通用 skill。
-- `internal/` 下内容允许包含作者本机环境约定，使用前应按自己的机器环境修改。
+- `internal/` 下内容允许保留个人环境运行约定，但应使用占位符或模板表达；安装前必须按自己的机器环境配置。
 
 ## 仓库结构说明
 
@@ -104,6 +104,7 @@ development-workflow-router
 skills/
   feature-doc-pack/
     SKILL.md
+    README.md
     references/
     examples/
   development-workflow-router/
