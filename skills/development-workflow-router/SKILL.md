@@ -63,13 +63,13 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 
 ### direct-flow
 
-默认模式。适用于用户希望 Codex 在当前会话中继续推进需求，但要求先确认流程和计划。
+当前会话开发模式。仅适用于用户明确希望 Codex 在当前会话中继续推进需求，但要求先确认流程和计划。
 
 触发信号：
 
-- “按 development-workflow-router 处理”
 - “先判断任务类型，确认计划前不要写代码”
-- 用户没有明确要求“生成完整提示词”
+- “按 development-workflow-router 处理，并在当前会话继续开发”
+- “走 direct-flow”
 
 第一轮读取 `references/mode-direct-flow.md`，输出简短流程卡片。用户确认后，再读取对应 workflow 和 checklist，进入 `writing-plans`。
 
@@ -77,15 +77,17 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 
 ### prompt-preview
 
-提示词预览模式。适用于用户只想先得到完整可复制的 Codex 开发提示词，自行检查、修改后再执行。
+默认模式。提示词预览模式。适用于用户先得到完整可复制的 Codex 开发提示词，自行检查、修改后再执行。
 
 触发信号：
 
+- “按 development-workflow-router 处理”
 - “生成完整提示词”
 - “先不要开发，帮我整理成提示词”
 - “我想复制提示词再发给 Codex”
 - “让我先检查流程有没有漏步骤”
 - 明确要求 `prompt-preview`
+- 用户没有明确要求在当前会话继续开发
 
 读取 `references/mode-prompt-preview.md`、对应 workflow 和 checklist，只输出可复制提示词。不修改代码、不执行命令、不进入 `executing-plans`。
 

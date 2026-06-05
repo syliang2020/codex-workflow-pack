@@ -17,13 +17,13 @@
 
 ### direct-flow
 
-默认模式。Codex 会先输出简短流程卡片，等待用户确认；确认后再读取对应 workflow、checklist，并进入 `writing-plans`。
+当前会话开发模式。Codex 会先输出简短流程卡片，等待用户确认；确认后再读取对应 workflow、checklist，并进入 `writing-plans`。
 
-适合继续在当前会话中推进开发。
+适合用户明确要求继续在当前会话中推进开发。
 
 ### prompt-preview
 
-只生成完整可复制提示词，不修改代码、不执行命令、不启动子代理。
+默认模式。只生成完整可复制提示词，不修改代码、不执行命令、不启动子代理。
 
 适合你想先检查流程是否完整，再复制提示词重新发送给 Codex。
 
@@ -96,11 +96,11 @@ cp -R skills/development-workflow-router ~/.codex/skills/development-workflow-ro
 ## 示例提示词
 
 ```text
-按 development-workflow-router 处理这个需求，先判断任务类型，确认计划前不要写代码。
+按 development-workflow-router 处理这个需求，先生成完整 Codex 开发提示词，我检查后再执行。
 ```
 
 ```text
-按 development-workflow-router 分析这个需求，先不要开发。请生成完整 Codex 开发提示词，我检查后再执行。
+按 development-workflow-router 处理这个需求，并在当前会话继续开发。先判断任务类型，确认计划前不要写代码。
 ```
 
 ```text
