@@ -4,7 +4,7 @@
 
 ## Skill 路由
 
-- 需求不清、需要澄清范围：使用 `superpowers:brainstorming`。
+- 新功能、创建组件、修改业务行为、需求不清或需要澄清范围：使用 `superpowers:brainstorming`。
 - 需要协作文档、前后端联调、接口字段、数据库、复杂规则或进度追踪：先询问是否使用 `feature-doc-pack`。
 - 后端复杂功能、数据库字段、接口变更、复杂校验、保存/编辑/删除流程、事务边界、外部调用或历史数据兼容：编码前使用 `backend-feature-design-review`。
 - 新功能或 bugfix 实现：使用 `superpowers:test-driven-development`，除非用户明确允许例外。

@@ -38,7 +38,7 @@
 
 1. 当前任务类型
 2. 分类置信度和假设条件
-3. superpowers 流程
+3. superpowers 流程，且 feature/行为变更必须把 `superpowers:brainstorming` 作为第一个硬闸门
 4. 推荐 agent 或子代理职责
 5. 项目上下文读取规则
 6. 数据库规则

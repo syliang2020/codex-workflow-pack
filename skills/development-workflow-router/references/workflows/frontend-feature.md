@@ -18,5 +18,5 @@
 
 ## 推荐职责
 
-- Skill：`feature-doc-pack`、`ui-ux-pro-max`、`playwright-local-runtime`、`superpowers:test-driven-development`。
+- Skill：`superpowers:brainstorming`、`feature-doc-pack`、`ui-ux-pro-max`、`playwright-local-runtime`、`superpowers:test-driven-development`。
 - Subagent：`ui-designer`、`frontend-developer`、`ui-fixer`、`reviewer`。

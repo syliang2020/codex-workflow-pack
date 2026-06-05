@@ -39,6 +39,15 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 
 读取项目 `AGENTS.md` 后，必须把项目级阻塞规则、编码规范、测试约束和交付要求摘要写入流程卡片、`writing-plans` 或提示词的质量门禁中；不能只读取而不落到计划。
 
+## Brainstorming 闸门
+
+只要任务分类为 `backend-feature`、`frontend-feature`、`fullstack-feature`，或需求会新增功能、创建组件、修改业务行为，推荐流程和完整提示词都必须显式包含 `superpowers:brainstorming`，且位置必须早于项目上下文读取、接口契约、设计审查和 `writing-plans`。
+
+- 不得用“需求分析”“流程确认”等泛化表述替代 `superpowers:brainstorming`。
+- direct-flow 第一轮的“推荐流程”和“建议使用的 skills”都必须列出 `superpowers:brainstorming`。
+- prompt-preview 生成的完整提示词必须把 `superpowers:brainstorming` 写成 feature/行为变更的第一个硬闸门。
+- bugfix 默认先走系统化调试；如果修复会引入新功能或改变业务行为，必须在确认根因后补充 `superpowers:brainstorming` 再进入设计和计划。
+
 ## 项目专属工具抽象
 
 本 skill 不固化任何项目专属配置或工具名称，不写死：
@@ -63,6 +72,8 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - 用户没有明确要求“生成完整提示词”
 
 第一轮读取 `references/mode-direct-flow.md`，输出简短流程卡片。用户确认后，再读取对应 workflow 和 checklist，进入 `writing-plans`。
+
+如果任务是 feature 或行为变更，第一轮推荐流程必须显式包含 `superpowers:brainstorming`。用户确认继续后，必须先完成 brainstorming 的设计确认，再进入 `writing-plans`。
 
 ### prompt-preview
 

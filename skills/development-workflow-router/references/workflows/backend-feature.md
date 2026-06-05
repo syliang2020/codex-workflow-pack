@@ -18,5 +18,5 @@
 
 ## 推荐职责
 
-- Skill：`feature-doc-pack`、`backend-feature-design-review`、`superpowers:test-driven-development`。
+- Skill：`superpowers:brainstorming`、`feature-doc-pack`、`backend-feature-design-review`、`superpowers:test-driven-development`。
 - Subagent：`api-designer`、`spring-boot-engineer`、`sql-pro`、`reviewer`。

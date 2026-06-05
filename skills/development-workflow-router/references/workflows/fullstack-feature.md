@@ -18,5 +18,5 @@
 
 ## 推荐职责
 
-- Skill：`feature-doc-pack`、`backend-feature-design-review`、`ui-ux-pro-max`、`playwright-local-runtime`、`superpowers:test-driven-development`。
+- Skill：`superpowers:brainstorming`、`feature-doc-pack`、`backend-feature-design-review`、`ui-ux-pro-max`、`playwright-local-runtime`、`superpowers:test-driven-development`。
 - Subagent：`sql-pro`、`api-designer`、`ui-designer`、`spring-boot-engineer`、`frontend-developer`、`reviewer`。
