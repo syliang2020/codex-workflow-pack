@@ -56,6 +56,8 @@
 - 在用户确认计划后启动必要 subagents。
 - 如果 skill 或 subagent 不可用，说明原因并由主 agent 按同等职责替代。
 - 不允许只列出名称但不执行对应职责。
+- 必须生成任务定制的【Skills 与子代理执行计划】，分别列出“必须使用/启动”“条件使用/启动”“明确不使用/不启动”。
+- 对于常见但本次不适用的 skill 或 subagent，必须写明不使用/不启动的原因和主 agent 需要覆盖的检查项。
 
 ## Skill 路由
 
@@ -69,6 +71,30 @@
 - 运行 Playwright 或浏览器真实测试，且处于 Windows Codex 环境：按需要使用 `playwright-local-runtime`。
 - 前端体验、UI/UX 审查或页面交互质量：使用 `ui-ux-pro-max`。
 - 完成前声明通过或完成：使用 `superpowers:verification-before-completion`。
+
+## Prompt-preview Skills 计划模板
+
+生成提示词时，必须把 skills 填进【Skills 与子代理执行计划】：
+
+1. 必须使用的 skills：当前任务一定需要的流程门禁。
+2. 条件使用的 skills：触发条件明确的 skill。
+3. 明确不使用的 skills：常见但本次不适用或用户禁止的 skill，并说明原因。
+
+每个 skill 条目必须包含：
+
+- 执行阶段。
+- 触发原因。
+- 需要读取的 `SKILL.md` 或 reference。
+- 预期产出。
+- 不可用时主 agent 的替代职责。
+
+常用映射：
+
+- `backend-bugfix`：必须规划 `superpowers:systematic-debugging`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`；条件规划 `backend-feature-design-review`、`feature-doc-pack`、`playwright-local-runtime`。
+- `backend-feature`：必须规划 `superpowers:brainstorming`、`backend-feature-design-review`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`；涉及协作或复杂接口/数据库时条件规划 `feature-doc-pack`。
+- `frontend-bugfix`：必须规划 `superpowers:systematic-debugging`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`；涉及真实页面或 UI 时规划 `playwright-local-runtime` 和 `ui-ux-pro-max`。
+- `frontend-feature`：必须规划 `superpowers:brainstorming`、`ui-ux-pro-max`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
+- `fullstack-feature` / `fullstack-bugfix`：必须同时覆盖后端、接口、前端、测试和验收所需 skills；涉及协作文档时先询问并条件规划 `feature-doc-pack`。
 
 ## Subagent 路由
 
@@ -84,6 +110,34 @@
 - `security-auditor`：鉴权、权限、敏感信息、输入校验和安全风险。
 - `microservices-architect`：服务边界、服务间契约、分布式一致性和架构取舍。
 - `product-manager`：产品范围、优先级、用户影响和需求收敛。
+
+## Prompt-preview Subagents 计划模板
+
+生成提示词时，必须把 subagents 填进【Skills 与子代理执行计划】：
+
+1. 必须启动的 subagents：下一轮 Codex 在用户确认计划后应真实启动的角色。
+2. 条件启动的 subagents：触发条件明确的角色。
+3. 明确不启动的 subagents：常见但本次不适用或用户禁止的角色，并说明原因。
+
+每个 subagent 条目必须包含：
+
+- 启动阶段。
+- 只读或可写。
+- 职责边界。
+- 可读取范围。
+- 可修改范围；只读任务写“不得修改文件”。
+- 禁止事项。
+- 交付物。
+- 验证要求。
+- 不可用时主 agent 的替代职责。
+
+常用映射：
+
+- `backend-bugfix`：通常规划 `debugger`（只读根因定位）、`spring-boot-engineer`（后端修复）、`reviewer`（审查）；涉及接口契约或返回兼容性时条件启动 `api-designer`；涉及 SQL/索引/数据库时条件启动 `sql-pro`。
+- `backend-feature`：通常规划 `api-designer`、`spring-boot-engineer`、`reviewer`；涉及 SQL/索引/数据库时条件启动 `sql-pro`；涉及权限或敏感信息时条件启动 `security-auditor`。
+- `frontend-bugfix`：通常规划 `debugger` 或 `ui-fixer`、`frontend-developer`、`reviewer`；复杂体验问题条件启动 `ui-designer`。
+- `frontend-feature`：通常规划 `ui-designer`、`frontend-developer`、`reviewer`。
+- `fullstack-feature` / `fullstack-bugfix`：通常规划 `api-designer`、`spring-boot-engineer`、`frontend-developer`、`reviewer`；涉及数据库时条件启动 `sql-pro`；涉及 UI 体验时条件启动 `ui-designer`。
 
 ## 子代理任务模板
 

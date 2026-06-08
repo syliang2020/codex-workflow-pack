@@ -63,8 +63,10 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 3. 不得跳过 `superpowers:writing-plans`。
 4. 不得跳过用户确认；计划未确认前，生成的提示词不得要求 Codex 改代码。
 5. 不得跳过 `superpowers:executing-plans`。
-6. 不得跳过子代理交接、代码审查、测试和验收。
-7. 用户提供的详细实现建议只能归入对应阶段，不能把 prompt-preview 改写成直接实现清单。
+6. 不得跳过 skills 使用计划、子代理启动计划、子代理交接、代码审查、测试和验收。
+7. prompt-preview 当前会话不执行 skills、不启动子代理，但生成的提示词必须包含“本次任务定制的 Skills 与子代理执行计划”，明确下一轮 Codex 应使用哪些 skills、启动哪些 subagents、在哪个阶段执行、只读或可写边界、禁止事项、交付物和不可用替代方案；不得只写通用“需要时使用 skills / 子代理”。
+8. 如果判断某个任务不需要使用某个 skill 或不需要启动某类 subagent，也必须在生成的提示词中写明“不使用 <skill> / 不启动 <subagent>”和原因，而不是省略路由规划。
+9. 用户提供的详细实现建议只能归入对应阶段，不能把 prompt-preview 改写成直接实现清单。
 
 ## 项目专属工具抽象
 
@@ -107,7 +109,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - 明确要求 `prompt-preview`
 - 用户没有明确要求在当前会话继续开发
 
-读取 `references/mode-prompt-preview.md`、对应 workflow、checklist、`references/agent-skill-routing.md` 和 `references/review-and-handoff.md`，只输出可复制的 superpowers workflow prompt。不修改代码、不执行命令、不在当前会话启动子代理、不在当前会话进入 `executing-plans`；但生成的提示词内部必须明确要求下一轮 Codex 在对应阶段实际使用 required skills / subagents，并在用户确认计划后才进入 `executing-plans`。
+读取 `references/mode-prompt-preview.md`、对应 workflow、checklist、`references/agent-skill-routing.md` 和 `references/review-and-handoff.md`，只输出可复制的 superpowers workflow prompt。不修改代码、不执行命令、不在当前会话启动子代理、不在当前会话进入 `executing-plans`；但生成的提示词内部必须明确要求下一轮 Codex 在对应阶段实际使用 required skills / subagents，并在用户确认计划后才进入 `executing-plans`。生成的提示词必须包含本次任务专属的【Skills 与子代理执行计划】，不能只保留模板里的通用 skills 或子代理说明。
 
 ### review-only
 
@@ -161,6 +163,14 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 `direct-flow` 是当前会话执行模式，不能只描述流程。进入对应阶段后，主 agent 必须实际使用应触发的 skills，并在用户确认后按需要启动 subagents；不可用时必须说明原因，并由主 agent 按同等职责替代。
 
 `prompt-preview` 当前会话只生成提示词，不启动子代理、不执行命令、不修改文件；但生成的提示词必须明确要求下一轮 Codex 在对应阶段实际使用 required skills / subagents。
+
+prompt-preview 生成提示词时，必须按任务类型和影响范围规划 skills 与 subagents：
+
+- 明确列出“必须使用”“条件使用”“明确不使用”的 skills。
+- 每个将被使用的 skill 都必须写清阶段、触发原因、要读取的 skill / reference、预期产出和不可用替代方案。
+- 明确列出“必须启动”“条件启动”“明确不启动”的 subagents。
+- 每个将被启动的 subagent 都必须写清阶段、职责边界、只读或可写范围、禁止事项、输入、输出和验证要求。
+- 不能用“如有需要使用 skill / 子代理”替代具体规划；如暂不使用某个常见 skill 或不启动某个 subagent，必须给出原因和主 agent 替代职责。
 
 先区分两类能力：
 
