@@ -1,6 +1,6 @@
 ---
 name: development-workflow-router
-description: Use when a user asks to route a backend, frontend, or fullstack feature/bugfix through superpowers, wants task classification before coding, needs a direct-flow or prompt-preview decision, asks for subagent coordination, or wants a copyable Codex development prompt.
+description: Use when a user asks to route a backend, frontend, or fullstack feature/bugfix through superpowers, wants task classification before coding, needs a direct-flow or prompt-preview decision, asks for subagent coordination, or wants a copyable superpowers workflow prompt.
 ---
 
 # Development Workflow Router
@@ -48,6 +48,24 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - prompt-preview 生成的完整提示词必须把 `superpowers:brainstorming` 写成 feature/行为变更的第一个硬闸门。
 - bugfix 默认先走系统化调试；如果修复会引入新功能或改变业务行为，必须在确认根因后补充 `superpowers:brainstorming` 再进入设计和计划。
 
+## Prompt Preview 硬门禁
+
+`prompt-preview` 不是普通 implementation prompt 生成器。它只能生成用于驱动 Codex 分阶段执行的 `superpowers workflow prompt`。
+
+生成 prompt-preview 时必须读取 `references/mode-prompt-preview.md`，并遵守其中的强制模板。完整提示词必须显式包含并按顺序约束：
+
+`brainstorm / bug-reproduce -> 数据库 / 接口 / UI / 修复方案设计 -> writing-plans -> 用户确认 -> executing-plans -> 子代理交接 -> 代码审查 -> 测试 -> 验收`
+
+硬性规则：
+
+1. feature 或行为变更不得跳过 `superpowers:brainstorming`。
+2. bugfix 不得跳过 bug-reproduce / `superpowers:systematic-debugging`。
+3. 不得跳过 `superpowers:writing-plans`。
+4. 不得跳过用户确认；计划未确认前，生成的提示词不得要求 Codex 改代码。
+5. 不得跳过 `superpowers:executing-plans`。
+6. 不得跳过子代理交接、代码审查、测试和验收。
+7. 用户提供的详细实现建议只能归入对应阶段，不能把 prompt-preview 改写成直接实现清单。
+
 ## 项目专属工具抽象
 
 本 skill 不固化任何项目专属配置或工具名称，不写死：
@@ -77,7 +95,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 
 ### prompt-preview
 
-默认模式。提示词预览模式。适用于用户先得到完整可复制的 Codex 开发提示词，自行检查、修改后再执行。
+默认模式。提示词预览模式。适用于用户先得到完整可复制的 superpowers workflow prompt，自行检查、修改后再执行。
 
 触发信号：
 
@@ -89,7 +107,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - 明确要求 `prompt-preview`
 - 用户没有明确要求在当前会话继续开发
 
-读取 `references/mode-prompt-preview.md`、对应 workflow 和 checklist，只输出可复制提示词。不修改代码、不执行命令、不进入 `executing-plans`。
+读取 `references/mode-prompt-preview.md`、对应 workflow 和 checklist，只输出可复制的 superpowers workflow prompt。不修改代码、不执行命令、不在当前会话进入 `executing-plans`；但生成的提示词内部必须包含 `executing-plans` 阶段，并要求 Codex 在用户确认计划后才进入。
 
 ### review-only
 
@@ -200,7 +218,7 @@ prompt-preview 第一轮输出：
 3. 分类置信度
 4. 判断理由
 5. 适用场景
-6. 可复制的完整 Codex 开发提示词
+6. 可复制的完整 superpowers workflow prompt
 7. 本次需求可追加的独有步骤建议
 
-最后提醒：“你可以先检查这份提示词，如果本次需求有特殊要求，可以在【本次需求特殊要求】部分追加后再发给 Codex。”
+最后提醒：“你可以先检查这份 superpowers workflow prompt。如果本次需求有特殊要求，可以在【本次需求特殊要求】部分追加后再发给 Codex；执行时仍必须按阶段等待确认，不能直接开始改代码。”

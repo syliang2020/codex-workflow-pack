@@ -10,7 +10,7 @@
 - 希望 Codex 在写代码前先判断任务类型和影响范围。
 - 希望使用 superpowers 流程开发，但不想每次写很长提示词。
 - 需要把 `feature-doc-pack`、`backend-feature-design-review`、`writing-plans`、`executing-plans` 和 subagents 串起来。
-- 需要生成一份可复制给 Codex 的完整开发提示词。
+- 需要生成一份可复制给 Codex 的完整 superpowers workflow prompt。
 - 只想做代码审查，不希望 Codex 修改文件。
 
 ## 工作模式
@@ -23,9 +23,9 @@
 
 ### prompt-preview
 
-默认模式。只生成完整可复制提示词，不修改代码、不执行命令、不启动子代理。
+默认模式。只生成完整可复制的 superpowers workflow prompt，不修改代码、不执行命令、不启动子代理。
 
-适合你想先检查流程是否完整，再复制提示词重新发送给 Codex。
+适合你想先检查流程是否完整，再复制提示词重新发送给 Codex。生成的提示词必须驱动 Codex 按阶段执行，不能直接开始改代码。
 
 ### review-only
 
@@ -96,7 +96,7 @@ cp -R skills/development-workflow-router ~/.codex/skills/development-workflow-ro
 ## 示例提示词
 
 ```text
-按 development-workflow-router 处理这个需求，先生成完整 Codex 开发提示词，我检查后再执行。
+按 development-workflow-router 处理这个需求，先生成完整 superpowers workflow prompt，我检查后再执行。
 ```
 
 ```text
@@ -127,5 +127,5 @@ development-workflow-router/
 
 - 不固化项目专属路径、端口、数据库连接、表名前缀或业务字段。
 - 不替代具体实现 skill；它只负责选择流程和路由。
-- prompt-preview 模式不执行任何操作。
+- prompt-preview 模式不执行任何操作，只生成 superpowers workflow prompt。
 - review-only 模式不修改文件。

@@ -1,4 +1,4 @@
 interface:
   display_name: "Development Workflow Router"
   short_description: "Superpowers-based workflow routing"
-  default_prompt: "Use $development-workflow-router in prompt-preview mode to classify this task and generate a copyable Codex development prompt before coding."
+  default_prompt: "Use $development-workflow-router in prompt-preview mode to classify this task and generate a copyable superpowers workflow prompt before coding."
