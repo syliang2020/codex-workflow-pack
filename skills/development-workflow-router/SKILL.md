@@ -89,7 +89,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - “按 development-workflow-router 处理，并在当前会话继续开发”
 - “走 direct-flow”
 
-第一轮读取 `references/mode-direct-flow.md`，输出简短流程卡片。用户确认后，再读取对应 workflow 和 checklist，进入 `writing-plans`。
+第一轮读取 `references/mode-direct-flow.md`，输出简短流程卡片。用户确认后，再读取对应 workflow、checklist、`references/agent-skill-routing.md` 和 `references/review-and-handoff.md`，并在对应阶段实际使用 required skills / subagents；不能只描述流程。
 
 如果任务是 feature 或行为变更，第一轮推荐流程必须显式包含 `superpowers:brainstorming`。用户确认继续后，必须先完成 brainstorming 的设计确认，再进入 `writing-plans`。
 
@@ -107,7 +107,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - 明确要求 `prompt-preview`
 - 用户没有明确要求在当前会话继续开发
 
-读取 `references/mode-prompt-preview.md`、对应 workflow 和 checklist，只输出可复制的 superpowers workflow prompt。不修改代码、不执行命令、不在当前会话进入 `executing-plans`；但生成的提示词内部必须包含 `executing-plans` 阶段，并要求 Codex 在用户确认计划后才进入。
+读取 `references/mode-prompt-preview.md`、对应 workflow、checklist、`references/agent-skill-routing.md` 和 `references/review-and-handoff.md`，只输出可复制的 superpowers workflow prompt。不修改代码、不执行命令、不在当前会话启动子代理、不在当前会话进入 `executing-plans`；但生成的提示词内部必须明确要求下一轮 Codex 在对应阶段实际使用 required skills / subagents，并在用户确认计划后才进入 `executing-plans`。
 
 ### review-only
 
@@ -158,12 +158,26 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 
 ## Skills 与子代理使用
 
-本 skill 可以在 `direct-flow` 中按需启动子代理；`prompt-preview` 只生成提示词，不启动子代理、不执行命令、不修改文件。
+`direct-flow` 是当前会话执行模式，不能只描述流程。进入对应阶段后，主 agent 必须实际使用应触发的 skills，并在用户确认后按需要启动 subagents；不可用时必须说明原因，并由主 agent 按同等职责替代。
+
+`prompt-preview` 当前会话只生成提示词，不启动子代理、不执行命令、不修改文件；但生成的提示词必须明确要求下一轮 Codex 在对应阶段实际使用 required skills / subagents。
 
 先区分两类能力：
 
-- Skill：加载后改变主 agent 的流程或检查标准，例如 `feature-doc-pack`、`backend-feature-design-review`、`playwright-local-runtime`、`ui-ux-pro-max` 和 superpowers。
-- Subagent：通过子代理工具启动的独立角色，例如 `spring-boot-engineer`、`frontend-developer`、`api-designer`、`sql-pro`、`reviewer`、`debugger`。
+- Skill：加载后改变主 agent 的流程或检查标准，例如 `feature-doc-pack`、`backend-feature-design-review`、`playwright-local-runtime`、`ui-ux-pro-max` 和 superpowers。写入流程的 skill 必须在对应阶段被真实读取并执行职责，不能只列名。
+- Subagent：通过子代理工具启动的独立角色，例如 `spring-boot-engineer`、`frontend-developer`、`api-designer`、`sql-pro`、`reviewer`、`debugger`。写入流程的 subagent 必须真实启动并交付，或说明不可用并由主 agent 替代，不能假装已执行。
+
+以下行为不算“使用”：
+
+- 只把 skill 或 subagent 名称列在推荐流程里。
+- 只说“建议使用”，但没有执行该 skill 的流程、检查清单或产出物。
+- 声称 subagent 已设计、已实现或已审查，但没有真实启动、没有交接报告，或没有说明由主 agent 替代。
+
+以下行为才算“使用”：
+
+- Skill：读取并遵守该 skill / reference 的步骤，输出该 skill 要求的设计、计划、审查、验证或交付物。
+- Subagent：真实启动对应 subagent，任务说明包含职责边界、可读写范围、禁止事项、输入、输出和验证要求，并回收交接报告。
+- 替代执行：如果 skill 或 subagent 不可用，明确说明不可用原因，并由主 agent 按同等职责完成检查或实现，同时标注为“主 agent 替代执行”。
 
 启动子代理必须同时满足：
 
@@ -174,9 +188,9 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 5. 不允许多个子代理同时修改同一文件或同一模块。
 6. 实现型子代理启动前，必须明确可修改目录或文件、禁止修改范围、是否允许新增依赖、验证命令和交付格式。
 
-具体路由表见 `references/agent-skill-routing.md`。
+具体路由、可用性检查和替代执行规则见 `references/agent-skill-routing.md`。
 
-某个 agent 或子代理不可用时，必须说明不可用，并由主 agent 按同等职责继续执行；不得编造子代理已执行的结果。
+某个 skill、agent 或子代理不可用时，必须说明不可用原因，并由主 agent 按同等职责继续执行；不得编造 skill 或子代理已执行的结果。
 
 ## 执行闸门
 
