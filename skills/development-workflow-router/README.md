@@ -10,7 +10,7 @@
 - 希望 Codex 在写代码前先判断任务类型和影响范围。
 - 希望使用 superpowers 流程开发，但不想每次写很长提示词。
 - 需要把 `feature-doc-pack`、`backend-feature-design-review`、`writing-plans`、`executing-plans` 和 subagents 串起来。
-- 需要生成一份可复制给 Codex 的完整 superpowers workflow prompt。
+- 需要生成一份可复制给 Codex 的 superpowers workflow prompt。
 - 只想做代码审查，不希望 Codex 修改文件。
 
 ## Workflow 单一来源
@@ -23,31 +23,30 @@
 - 是否允许改代码
 - 是否需要用户确认
 
-`SKILL.md`、mode 文档、routing 文档和 handoff 文档只说明如何选择模式、如何执行阶段、如何生成 prompt、如何路由和交接，不再重复维护另一套流程。
+`SKILL.md`、mode 文档、routing 文档和 handoff 文档只说明如何选择模式、如何执行阶段、如何生成 prompt、如何路由和交接，不重复维护另一套流程。
 
 ## 工作模式
 
 ### direct-flow
 
-当前会话执行模式。Codex 会判断任务类型，读取对应 workflow，并直接进入第一个实际阶段。
+当前会话执行模式。
 
-- feature / 行为变更从 `superpowers:brainstorming` 开始。
-- bugfix 从 bug-reproduce / `superpowers:systematic-debugging` 开始。
-- 阶段要求的 skill 必须实际读取并执行。
-- 阶段要求的 subagent 必须真实启动并交接；不可用时由主 Codex 按同等职责替代并说明。
-- `writing-plans` 未经用户确认前，不进入 `executing-plans`，不修改代码。
+Codex 会先判断任务类型和置信度，然后读取对应 workflow，并直接进入 workflow 的第一个实际阶段：
+
+- feature 类任务进入 `superpowers:brainstorming`
+- bugfix 类任务进入 `bug-reproduce` / `superpowers:systematic-debugging`
+
+direct-flow 不生成完整提示词，也不只输出流程卡片。每个阶段结束后输出阶段产物并等待用户确认，`writing-plans` 确认前不写代码。
 
 ### prompt-preview
 
-默认模式。只生成完整可复制的 superpowers workflow prompt，不修改代码、不执行命令、不启动子代理。
+提示词预览模式。
 
-生成的提示词必须用于驱动下一轮 Codex 按阶段执行，不能直接开始改代码。提示词必须以：
+只生成完整可复制的 superpowers workflow prompt，不修改代码、不执行命令、不启动子代理。
 
-```text
-请使用 superpowers 完成本次开发。你现在拿到的是 superpowers workflow prompt，不是直接实现提示词。
-```
+prompt-preview 会读取对应 workflow，并把该 workflow 转换成可复制提示词。生成的提示词不得要求下一轮再次调用 `development-workflow-router`，而应直接要求使用 superpowers 按阶段执行。
 
-开头，并且不得要求下一轮再调用 `development-workflow-router`。
+默认输出中等长度的 workflow prompt，只列本次任务实际需要的 skill / subagent 路由；只有用户明确要求完整清单时，才展开所有“必须 / 条件 / 不使用”的 skills 和 subagents。
 
 ### review-only
 
@@ -76,20 +75,30 @@
 
 ## 典型流程
 
-复杂功能开发通常走：
+复杂后端功能通常走：
 
 ```text
 superpowers:brainstorming
--> feature-doc-pack（需要协作文档时先询问）
--> 数据库 / 接口 / UI 设计
--> backend-feature-design-review（涉及复杂后端设计时）
+-> api-designer / sql-pro
+-> backend-feature-design-review（编码前设计门禁）
 -> superpowers:writing-plans
--> 用户确认
 -> superpowers:executing-plans with TDD
--> subagent handoff
+-> backend-feature-design-review / reviewer（编码后代码审查）
+-> tests
+-> acceptance
+```
+
+全栈功能通常走：
+
+```text
+superpowers:brainstorming
+-> api-designer / sql-pro / ui-designer
+-> backend-feature-design-review / ui-ux-pro-max
+-> superpowers:writing-plans
+-> superpowers:executing-plans with TDD
 -> code review
--> tests / Playwright
--> verification-before-completion
+-> integration
+-> Playwright / browser test
 -> acceptance
 ```
 
@@ -97,12 +106,10 @@ Bugfix 通常走：
 
 ```text
 bug-reproduce / superpowers:systematic-debugging
--> 根因定位
--> 修复方案设计
+-> root cause
+-> fix design
 -> superpowers:writing-plans
--> 用户确认
--> superpowers:executing-plans with TDD
--> subagent handoff
+-> superpowers:executing-plans with regression test
 -> code review
 -> regression tests / Playwright
 -> acceptance
@@ -142,7 +149,7 @@ cp -R skills/development-workflow-router ~/.codex/skills/development-workflow-ro
 ```
 
 ```text
-按 development-workflow-router 处理这个需求，并在当前会话继续开发。先判断任务类型，确认计划前不要写代码。
+按 development-workflow-router 处理这个需求，并在当前会话继续开发。确认计划前不要写代码。
 ```
 
 ```text

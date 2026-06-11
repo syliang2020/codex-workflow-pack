@@ -5,159 +5,142 @@
 ## 与 Workflow 的关系
 
 - `references/workflows/*.md` 是阶段顺序和阶段要求的唯一来源。
-- 本文件只解释某个阶段写了 skill / subagent 时，如何判断可用、如何执行、如何替代、如何回收。
+- 本文件只解释如何做阶段绑定、按需路由和不可用降级。
 - 如果本文件的推荐映射与 workflow 阶段冲突，以 workflow 为准。
 
-## 使用定义
+## 阶段绑定规则
 
-### Skill 使用
+不得只列出 skill 或 subagent 名称。
 
-只有满足以下条件，才算实际使用 skill：
+每个 workflow 阶段必须明确：
 
-1. 已读取该 skill 的 `SKILL.md` 或相关 reference。
-2. 已按该 skill 的流程、门禁或检查清单执行。
-3. 已输出该 skill 要求的产出物，例如设计确认、协作文档、审查结论、运行策略或验证结果。
+1. 本阶段使用哪个 skill 或 subagent。
+2. 本阶段输入是什么。
+3. 本阶段输出是什么。
+4. 本阶段是否允许改代码。
+5. 本阶段结束后是否需要用户确认。
 
-只在流程中列名、口头说“建议使用”、或没有产出物，都不算使用。
+### `superpowers:brainstorming`
 
-### Subagent 使用
+- 输入：
+  - 用户需求
+  - 项目上下文
+  - 相关代码和文档
+- 输出：
+  - 需求澄清
+  - 影响边界
+  - 不做事项
+  - 验收标准
+  - 需要用户确认的问题
+- 是否允许改代码：
+  - 否
+- 是否需要确认：
+  - 是
 
-只有满足以下条件，才算实际使用 subagent：
+### `bug-reproduce` / `superpowers:systematic-debugging`
 
-1. 真实启动对应 subagent。
-2. 任务说明写清职责边界、可读写范围、禁止事项、输入、输出和验证要求。
-3. 回收 subagent 的交接报告。
-4. 主 agent 检查交接报告和工作区状态。
+- 输入：
+  - 用户描述
+  - 错误信息
+  - 日志、测试、页面路径或接口请求
+- 输出：
+  - 复现路径
+  - 期望结果
+  - 实际结果
+  - 影响范围
+  - 根因假设
+- 是否允许改代码：
+  - 否
+- 是否需要确认：
+  - 复现信息不足或影响范围不清时需要确认
 
-没有真实启动时，不得说该 subagent 已执行。
+### `superpowers:writing-plans`
 
-### 不可用替代
+- 输入：
+  - 已确认的需求、设计或修复方案
+  - 项目规则、构建约束和测试约束
+- 输出：
+  - 文件级计划
+  - 测试计划
+  - 风险和回滚方案
+  - 子代理分工，如需要
+- 是否允许改代码：
+  - 否
+- 是否需要确认：
+  - 是，计划确认前不得写代码
 
-如果 skill 或 subagent 不可用，必须输出：
+### `superpowers:executing-plans with TDD`
+
+- 输入：
+  - 已确认 writing-plans
+  - 可修改范围
+  - 测试计划
+- 输出：
+  - 代码实现
+  - 测试或回归用例
+  - 测试结果
+  - 子代理交接报告，如使用 subagent
+- 是否允许改代码：
+  - 是
+- 是否需要确认：
+  - 执行前需要确认 writing-plans；偏离计划时需要再次确认
+
+## Prompt-preview 路由生成规则
+
+prompt-preview 默认只生成本次任务需要的 skill / subagent 路由。
+
+不得强制展开所有无关 skill 和 subagent。
+
+只有在用户明确要求“完整 skills/subagents 使用计划”时，才展开：
+
+- 必须使用
+- 条件使用
+- 明确不使用
+- 必须启动
+- 条件启动
+- 明确不启动
+
+中等长度路由写法：
+
+```text
+【Skill / Subagent 路由】
+- 需求澄清：superpowers:brainstorming。
+- 接口设计：api-designer；不可用时主 agent 按接口契约职责替代。
+- 数据库设计：sql-pro；不涉及数据库时不列。
+- 执行：superpowers:executing-plans with TDD，后端优先 spring-boot-engineer。
+- 审查：backend-feature-design-review / reviewer。
+- 验收前验证：superpowers:verification-before-completion。
+```
+
+## 不可用降级规则
+
+如果某个 skill 或 subagent 不可用：
+
+1. 必须明确说明不可用的名称。
+2. 必须说明它原本负责什么。
+3. 主 agent 必须按同等职责执行。
+4. 必须输出替代执行结果。
+5. 不得假装已经调用。
+6. 不得因为不可用而跳过阶段。
+
+建议输出：
 
 ```text
 未使用/未启动 <skill/subagent>。
 原因：<不可用原因>。
-替代：由主 agent 按 <skill/subagent> 的职责执行。
-替代产出：<设计/审查/实现/验证结果>。
+原职责：<它原本负责的阶段和产物>。
+替代：主 agent 按同等职责执行。
+替代产出：<实际产出>。
 ```
 
-不可用原因可以是：未安装、当前工具列表没有该 subagent、用户禁止启动子代理、当前模式为 prompt-preview、权限或环境限制。
+## 常用按需路由
 
-## direct-flow 路由规则
-
-`direct-flow` 是当前会话执行模式：
-
-- 阶段触发 skill 时，必须实际读取并执行该 skill。
-- 阶段需要 subagent 且用户已确认计划时，必须启动 subagent；不可用时主 agent 替代执行。
-- 每个阶段输出必须记录“实际使用的 skill / subagent / 替代执行”。
-- workflow 标记“不允许改代码”的阶段，不得启动实现型 subagent。
-- workflow 标记“需要用户确认”的阶段，必须停止等待确认。
-
-## prompt-preview 路由规则
-
-`prompt-preview` 当前会话不启动 subagent、不执行命令、不修改文件。
-
-但是生成的 superpowers workflow prompt 必须要求下一轮 Codex：
-
-- 在对应阶段实际使用 superpowers skills、`feature-doc-pack`、`backend-feature-design-review`、`ui-ux-pro-max`、`playwright-local-runtime` 等必要 skills。
-- 在用户确认计划后启动必要 subagents。
-- 如果 skill 或 subagent 不可用，说明原因并由主 agent 按同等职责替代。
-- 不允许只列出名称但不执行对应职责。
-- 必须生成任务定制的【Skills 与子代理执行计划】，分别列出“必须使用/启动”“条件使用/启动”“明确不使用/不启动”。
-- 对于常见但本次不适用的 skill 或 subagent，必须写明不使用/不启动的原因和主 agent 需要覆盖的检查项。
-
-## Stage 绑定规则
-
-### Feature
-
-- `superpowers:brainstorming`：feature / 行为变更的第一阶段。
-- `feature-doc-pack`：需要协作文档时在设计阶段后、`writing-plans` 前使用；必须先询问用户。
-- `backend-feature-design-review`：后端复杂功能编码前设计门禁；实现后后端代码审查阶段再次使用。
-- `ui-ux-pro-max`：UI/UX 设计、审查和可访问性检查阶段使用。
-- `superpowers:writing-plans`：设计确认后、实现前使用。
-- `superpowers:executing-plans`：用户确认计划后使用，并把 TDD 或回归测试策略嵌入执行。
-- `superpowers:verification-before-completion`：验收前使用。
-
-### Bugfix
-
-- `superpowers:systematic-debugging`：bugfix 第一阶段，负责复现、现象确认、根因假设和验证路径。
-- `superpowers:brainstorming`：修复会新增功能或改变业务行为时，在根因确认后补充使用。
-- `backend-feature-design-review`：后端复杂修复设计阶段按需使用；后端代码审查阶段按需或按 workflow 要求再次使用。
-- `ui-ux-pro-max`：前端 UI/UX bugfix 的方案设计、审查和浏览器检查点。
-- `superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`：按 workflow 阶段使用。
-
-## Skill 路由
-
-- 新功能、创建组件、修改业务行为、需求不清或需要澄清范围：使用 `superpowers:brainstorming`。
-- bugfix、失败测试、报错、异常行为：使用 `superpowers:systematic-debugging`。
-- 需要协作文档、前后端联调、接口字段、数据库、复杂规则或进度追踪：先询问是否使用 `feature-doc-pack`；用户确认后使用。
-- 后端复杂功能、数据库字段、接口变更、复杂校验、保存/编辑/删除流程、事务边界、外部调用或历史数据兼容：编码前使用 `backend-feature-design-review`。
-- 文档和设计确认后：使用 `superpowers:writing-plans`。
-- 计划确认后开始执行：使用 `superpowers:executing-plans`；TDD 或回归测试策略写入执行阶段。
-- 运行 Playwright 或浏览器真实测试，且处于 Windows Codex 环境：按需要使用 `playwright-local-runtime`。
-- 前端体验、UI/UX 审查或页面交互质量：使用 `ui-ux-pro-max`。
-- 完成前声明通过或完成：使用 `superpowers:verification-before-completion`。
-
-## Subagent 路由
-
-- `spring-boot-engineer`：Spring Boot 后端实现、配置、Service、Controller、数据访问落地。
-- `api-designer`：接口契约、字段兼容性、REST 设计和版本演进。
-- `sql-pro`：SQL、迁移草案、索引建议、查询设计、数据库问题分析。
-- `database-optimizer`：执行计划、慢查询、索引性能、数据库性能优化。
-- `frontend-developer`：前端实现、前端功能、生产级交互行为。
-- `ui-designer`：UI 方案、交互边界、实现前设计决策。
-- `ui-fixer`：已复现 UI 问题的最小修复。
-- `reviewer`：PR 风格代码审查，重点是正确性、安全、行为回归和缺失测试。
-- `debugger`：报错、失败测试、运行时行为和深度 bug 定位。
-- `security-auditor`：鉴权、权限、敏感信息、输入校验和安全风险。
-- `microservices-architect`：服务边界、服务间契约、分布式一致性和架构取舍。
-- `product-manager`：产品范围、优先级、用户影响和需求收敛。
-
-## Prompt-preview Skills 计划模板
-
-生成提示词时，必须把 skills 填进【Skills 与子代理执行计划】：
-
-1. 必须使用的 skills：当前任务一定需要的流程门禁。
-2. 条件使用的 skills：触发条件明确的 skill。
-3. 明确不使用的 skills：常见但本次不适用或用户禁止的 skill，并说明原因。
-
-每个 skill 条目必须包含：
-
-- 执行阶段。
-- 触发原因。
-- 需要读取的 `SKILL.md` 或 reference。
-- 预期产出。
-- 不可用时主 agent 的替代职责。
-
-## Prompt-preview Subagents 计划模板
-
-生成提示词时，必须把 subagents 填进【Skills 与子代理执行计划】：
-
-1. 必须启动的 subagents：下一轮 Codex 在用户确认计划后应真实启动的角色。
-2. 条件启动的 subagents：触发条件明确的角色。
-3. 明确不启动的 subagents：常见但本次不适用或用户禁止的角色，并说明原因。
-
-每个 subagent 条目必须包含：
-
-- 启动阶段。
-- 只读或可写。
-- 职责边界。
-- 可读取范围。
-- 可修改范围；只读任务写“不得修改文件”。
-- 禁止事项。
-- 交付物。
-- 验证要求。
-- 不可用时主 agent 的替代职责。
-
-## 常用映射
-
-- `backend-feature`：通常规划 `api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`spring-boot-engineer`、`reviewer`。
-- `frontend-feature`：通常规划 `ui-designer`、`ui-ux-pro-max`、`api-designer`（确认接口依赖）、`frontend-developer`、`reviewer`、Playwright 验证。
-- `fullstack-feature`：通常规划 `api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`backend-feature-design-review`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、Playwright 联调。
-- `backend-bugfix`：通常规划 `debugger`、`backend-feature-design-review`（复杂修复时）、`spring-boot-engineer`、`reviewer`；涉及接口契约时规划 `api-designer`，涉及 SQL 时规划 `sql-pro`。
-- `frontend-bugfix`：通常规划 `debugger` 或 `ui-fixer`、`ui-ux-pro-max`、`frontend-developer`、`reviewer`、Playwright 回归。
-- `fullstack-bugfix`：通常规划 `debugger`、`api-designer`、`backend-feature-design-review`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、Playwright 联调；涉及数据库时规划 `sql-pro`。
+- `backend-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
+- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、`superpowers:executing-plans with TDD / regression test`、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
+- `fullstack-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`ui-ux-pro-max`、`backend-feature-design-review`、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `backend-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer` / `sql-pro` / `backend-feature-design-review`（按影响范围）、`superpowers:writing-plans`、`superpowers:executing-plans with regression test`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
+- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `ui-fixer`、`ui-ux-pro-max`、`superpowers:writing-plans`、`superpowers:executing-plans with regression test`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、`superpowers:executing-plans with regression test`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
 
 ## 子代理任务模板
 
@@ -173,23 +156,3 @@
 8. 验证命令或无法验证的说明。
 9. 是否允许新增依赖；默认不允许。
 10. 与其它子代理的边界，避免同文件或同模块并行修改。
-
-## 协作文档门禁
-
-命中 `feature-doc-pack` 场景时，不要直接生成文档。先询问用户是否生成协作文档；用户确认后再进入文档流程。文档确认后，仍需按任务类型继续进入设计门禁、计划、实现、审查和测试。
-
-推荐顺序：
-
-1. 实际使用 `superpowers:brainstorming` 澄清需求和影响范围。
-2. 需要协作时询问并使用 `feature-doc-pack`。
-3. 涉及后端复杂设计时实际使用 `backend-feature-design-review`。
-4. 文档和设计确认后实际使用 `superpowers:writing-plans`。
-5. 计划确认后实际使用 `superpowers:executing-plans` 或启动子代理协作。
-
-## Playwright 路由
-
-- `frontend-feature` 和 `fullstack-feature`：默认需要浏览器真实测试。
-- `frontend-bugfix` 和 `fullstack-bugfix`：默认需要复现路径和回归路径。
-- `backend-feature`：只有影响已有页面、接口行为需要前端验证或用户要求时才需要。
-- `backend-bugfix`：默认以单元测试或接口测试为主；影响页面表现时再补浏览器测试。
-- 一旦需要 Playwright，在 Windows Codex 环境优先使用 `playwright-local-runtime`；不可用时说明原因并给出替代验证。
