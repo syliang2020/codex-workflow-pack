@@ -1,67 +1,85 @@
 # Direct Flow Mode
 
-适用于用户希望 Codex 在当前会话内继续推进需求，但仍要求先确认流程和计划的情况。
+`direct-flow` 是当前会话执行模式。它不是流程预览，也不是只输出流程卡片；分类完成后，必须读取对应 workflow，并直接进入第一个实际阶段。
 
-## 目标
+## 执行定位
 
-在当前会话内完成：
+目标是在当前会话内按 workflow 推进：
 
-`任务分类 -> 流程确认 -> 实际使用 superpowers skills -> 必要设计门禁 -> writing-plans -> 用户确认 -> executing-plans -> 必要 subagents -> 审查 -> 测试 -> 验收`
+```text
+任务分类 -> 读取对应 workflow -> 进入第一个实际阶段 -> writing-plans -> 用户确认 -> executing-plans with TDD -> 子代理交接 -> 代码审查 -> 测试 -> 验收
+```
 
-## 当前会话执行规则
+`references/workflows/*.md` 是唯一流程来源。本文件只说明 direct-flow 如何执行 workflow。
 
-1. 先判断任务类型、影响范围和置信度。
-2. 第一轮只输出简短流程卡片，并等待用户确认。
-3. 用户确认后，必须读取对应 workflow reference、checklist、`agent-skill-routing.md` 和 `review-and-handoff.md`。
-4. 到达某个阶段时，必须实际使用该阶段对应 skill；不能只列名。
-5. 需要 subagent 时，必须按 `agent-skill-routing.md` 启动并交接；如果不可用，说明原因并由主 agent 按同等职责替代。
-6. 每次使用 skill 或 subagent 后，都要输出“已使用能力 / 产出物 / 后续影响”。
-7. 不得声称某个 skill、subagent 或审查已完成，除非已经真实执行或明确主 agent 替代执行。
+## 启动步骤
 
-## 必须实际使用的 skills
+1. 判断任务类型和置信度。
+2. 按任务类型读取一个对应 workflow。
+3. 读取必要 checklist、`agent-skill-routing.md` 和 `review-and-handoff.md`。
+4. 输出当前分类、判断理由、影响范围和即将进入的 workflow 阶段。
+5. 直接进入 workflow 的第一个实际阶段：
+   - feature / 行为变更：进入 `superpowers:brainstorming`。
+   - bugfix：进入 bug-reproduce / `superpowers:systematic-debugging`。
+6. 阶段标记“需要用户确认”时，必须停止并等待确认。
 
-按任务类型触发：
+## 阶段执行规则
 
-- feature 或行为变更：必须先实际使用 `superpowers:brainstorming`，并拿到设计确认。
-- bugfix：必须先实际使用 `superpowers:systematic-debugging` 做复现、现象确认、根因假设和验证路径。
-- 新功能或 bugfix 进入实现前：必须使用 `superpowers:writing-plans`。
-- 用户确认计划后：必须使用 `superpowers:executing-plans`。
-- 实现完成后声称完成前：必须使用 `superpowers:verification-before-completion`。
-- 涉及复杂后端设计：编码前必须使用 `backend-feature-design-review`。
-- 涉及协作文档场景：必须先询问是否使用 `feature-doc-pack`；用户确认后实际使用。
-- 涉及 UI/UX 审查：按需要使用 `ui-ux-pro-max`。
-- 涉及 Windows Codex Playwright 运行链路：按需要使用 `playwright-local-runtime`。
+每个 workflow 阶段都必须按阶段表执行：
 
-## 必要 subagents
+- 使用：实际读取并执行列出的 skill，或启动列出的 subagent。
+- 输入：说明本阶段使用了哪些上下文、文件、测试、日志、接口或设计结论。
+- 输出：给出本阶段产出物，不得只写“已完成”。
+- 是否允许改代码：否的阶段不得改代码；是的阶段也只能在用户确认后按计划范围改。
+- 是否需要用户确认：是的阶段必须等待用户确认后才能进入下一阶段。
 
-用户确认流程和计划后，按任务实际需要启动：
+如果阶段要求的 skill 或 subagent 不可用，必须输出：
 
-- 后端实现：`spring-boot-engineer`。
-- 接口契约：`api-designer`。
-- SQL、索引、迁移草案：`sql-pro`。
-- 前端实现：`frontend-developer`。
-- UI 方案或体验检查：`ui-designer`、`ui-fixer` 或 `ui-ux-pro-max`。
-- 通用代码审查：`reviewer`。
-- 问题定位：`debugger`。
-- 安全风险：`security-auditor`。
+```text
+未使用/未启动 <skill/subagent>。
+原因：<不可用原因>。
+替代：由主 agent 按 <skill/subagent> 的同等职责执行。
+替代产出：<本阶段产出物>。
+```
 
-如果当前环境没有对应 subagent，必须写明：“未启动 `<name>`，原因：<原因>；由主 agent 按 `<name>` 职责替代执行。”
+不得假装 skill 或 subagent 已经执行。
+
+## 必须实际执行的能力
+
+- feature / 行为变更：必须实际使用 `superpowers:brainstorming`。
+- bugfix：必须实际使用 `superpowers:systematic-debugging` 做复现、现象确认、根因假设和验证路径。
+- 进入实现前：必须实际使用 `superpowers:writing-plans`。
+- 用户确认计划后：必须实际使用 `superpowers:executing-plans`，并把 TDD 或回归测试策略嵌入执行。
+- 完成前：必须实际使用 `superpowers:verification-before-completion`。
+- 复杂后端设计：编码前必须实际使用 `backend-feature-design-review`。
+- 后端实现后：后端审查阶段必须再次使用 `backend-feature-design-review`。
+- 需要协作文档：先询问是否使用 `feature-doc-pack`；用户确认后再实际使用。
+- 需要真实浏览器验证：按项目环境使用 Playwright；Windows Codex 环境优先使用 `playwright-local-runtime`。
+
+## 子代理规则
+
+- 子代理只在用户确认计划后按 workflow 阶段启动。
+- 启动前必须写清职责边界、只读或可写、可读取范围、可修改范围、禁止事项、输入、输出和验证要求。
+- 不允许多个 subagent 同时修改同一文件或同一模块。
+- 子代理不可用时，主 agent 按同等职责替代并说明。
+- 每个子代理完成后，必须按 `review-and-handoff.md` 回收交接报告。
 
 ## 输出要求
 
-第一轮不要展开完整流程，只展示当前任务需要的最小信息。推荐流程用一行表达，细节等用户确认后再展开。
-
-第一轮必须包含：
+direct-flow 第一轮输出不再是“等用户确认流程后再开始”的卡片，而是：
 
 1. 工作模式：`direct-flow`
 2. 任务类型和置信度
 3. 判断理由
 4. 影响范围
-5. 推荐流程
-6. 必须实际使用的 skills
-7. 可能需要启动的 subagents
-8. 如果能力不可用时的主 agent 替代策略
-9. 下一步确认问题
+5. 读取的 workflow
+6. 当前进入的第一阶段
+7. 本阶段实际使用的 skill / subagent 或替代执行说明
+8. 本阶段输入
+9. 本阶段输出
+10. 风险、待确认问题和下一步
+
+如果第一阶段需要用户确认，输出阶段结论后停止等待确认。不要提前进入 `writing-plans`。
 
 ## 禁止事项
 

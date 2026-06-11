@@ -1,22 +1,242 @@
 # Fullstack Feature Workflow
 
-适用于前端和后端一起开发的完整功能。
+当用户同时提到前端和后端、后端 API 与前端联调、接口和页面、页面调用新接口、字段需要前端展示、权限或数据口径影响页面时，必须分类为 `fullstack-feature`。
 
-## 推荐流程
+## 阶段
 
-`superpowers:brainstorming` -> 项目上下文读取 -> 询问并按需使用 `feature-doc-pack` -> 数据库设计或 DDL 草案 -> 接口契约定义 -> `backend-feature-design-review` 设计门禁 -> UI 交互方案 -> `superpowers:writing-plans` -> 用户确认 -> `superpowers:executing-plans` 或 `superpowers:subagent-driven-development` -> 后端实现 -> 前端实现 -> 后端代码审查 -> 前端代码审查 -> 联调 -> Playwright 或浏览器真实测试 -> 验收。
+### 1. `superpowers:brainstorming`
 
-## 规则
+- 使用：
+  - `superpowers:brainstorming`
+- 输入：
+  - 用户原始需求
+  - 现有前端页面和后端接口
+  - 项目级 `AGENTS.md` 规则摘要
+- 输出：
+  - 业务目标
+  - 前端范围
+  - 后端范围
+  - 接口和数据范围
+  - 不做范围
+  - 成功标准
+  - 待确认问题
+- 是否允许改代码：否。
+- 是否需要用户确认：是，边界不清或跨端取舍时必须确认。
+- 执行要求：
+  - 不得把全栈任务拆成互不对齐的前端和后端清单。
+  - 必须明确联调验收路径。
 
-- 数据库、接口、UI 三者必须先对齐。
-- 数据库方案未确认前，不得使用任何数据库 MCP、迁移工具或 SQL 执行工具真实变更数据库。
-- 接口契约未确认前，不得大规模写前端调用。
-- UI 交互边界确认前，不得大规模写页面。
-- 前后端实现后必须联调。
-- Playwright 必须覆盖主业务路径。
-- 在当前 Windows Codex 环境运行 Playwright 时，使用 `playwright-local-runtime`。
+---
 
-## 推荐职责
+### 2. 数据库 / 接口 / UI 协同设计
 
-- Skill：`superpowers:brainstorming`、`feature-doc-pack`、`backend-feature-design-review`、`ui-ux-pro-max`、`playwright-local-runtime`、`superpowers:test-driven-development`。
-- Subagent：`sql-pro`、`api-designer`、`ui-designer`、`spring-boot-engineer`、`frontend-developer`、`reviewer`。
+- 使用：
+  - `api-designer`
+  - `sql-pro`
+  - `ui-designer`
+  - `ui-ux-pro-max`
+  - `feature-doc-pack`（需要协作文档时先询问用户）
+- 输入：
+  - brainstorming 结论
+  - 现有 API、表结构、页面、组件和调用链
+  - 字段语义、权限、状态和历史兼容要求
+- 输出：
+  - API 契约草案
+  - 数据库影响说明
+  - UI / 交互方案
+  - 前后端字段映射
+  - 联调和验收口径
+  - 是否需要协作文档的结论
+- 是否允许改代码：否。
+- 是否需要用户确认：涉及接口兼容、数据库结构、字段语义、UI 取舍或协作文档时需要确认。
+- 执行要求：
+  - `api-designer` 负责接口契约和兼容性。
+  - `sql-pro` 负责表、字段、索引、SQL、迁移和历史数据。
+  - `ui-designer` / `ui-ux-pro-max` 负责页面结构、交互、可访问性和真实浏览器检查点。
+  - subagent 或 skill 不可用时，主 agent 必须说明原因并替代完成同等职责。
+
+---
+
+### 3. 设计门禁
+
+- 使用：
+  - `backend-feature-design-review`
+  - `ui-ux-pro-max`
+- 输入：
+  - 协同设计结果
+  - API 契约草案
+  - 数据库影响说明
+  - UI / 交互方案
+  - 计划修改的模块和文件范围
+- 输出：
+  - 后端设计阻塞问题
+  - UI/UX 风险
+  - 分层、命名、校验、事务和复用设计结论
+  - 前后端联调风险
+- 是否允许改代码：否。
+- 是否需要用户确认：有阻塞问题、设计取舍或风险升高时需要确认。
+- 执行要求：
+  - 后端复杂设计必须先过 `backend-feature-design-review` 再进入计划。
+  - UI 方案必须先明确真实浏览器验证路径。
+
+---
+
+### 4. `superpowers:writing-plans`
+
+- 使用：
+  - `superpowers:writing-plans`
+- 输入：
+  - 已确认的协同设计
+  - 设计门禁结论
+  - 项目构建、测试和启动约束
+- 输出：
+  - 前后端分步骤实现计划
+  - 文件级修改清单
+  - 接口联调计划
+  - 测试与 Playwright 验证计划
+  - 子代理分工计划
+  - 风险和回滚方案
+- 是否允许改代码：否。
+- 是否需要用户确认：是，计划未确认前不得实现。
+- 执行要求：
+  - 计划必须体现 `superpowers:executing-plans with TDD`。
+  - 必须写清楚后端、前端、接口、数据库和浏览器验证的顺序。
+
+---
+
+### 5. 用户确认
+
+- 使用：
+  - 主 agent
+- 输入：
+  - `writing-plans` 输出
+  - 设计门禁结论
+  - 联调风险
+- 输出：
+  - 用户确认结果
+  - 需要调整的设计或计划
+- 是否允许改代码：否。
+- 是否需要用户确认：是。
+- 执行要求：
+  - 用户未确认前不得启动实现型 subagent，不得修改代码，不得执行迁移。
+
+---
+
+### 6. `superpowers:executing-plans` with TDD
+
+- 使用：
+  - `superpowers:executing-plans`
+  - `spring-boot-engineer`
+  - `frontend-developer`
+- 输入：
+  - 已确认的计划
+  - 可修改范围
+  - 测试和联调计划
+- 输出：
+  - 后端实现
+  - 前端实现
+  - 新增或调整的测试
+  - 实际修改文件
+  - 偏离计划的说明
+- 是否允许改代码：是，仅限用户确认后的计划范围。
+- 是否需要用户确认：进入本阶段前需要确认；偏离计划时需要再次确认。
+- 执行要求：
+  - TDD 嵌入本阶段：优先补回归测试、接口测试或前端测试，再实现。
+  - 后端实现优先交给 `spring-boot-engineer`，前端实现优先交给 `frontend-developer`。
+  - 不允许多个 subagent 同时修改同一文件或同一模块。
+
+---
+
+### 7. 子代理交接与联调回收
+
+- 使用：
+  - 主 agent
+  - 已启动的 subagents
+  - `references/review-and-handoff.md`
+- 输入：
+  - 后端交付结果
+  - 前端交付结果
+  - 接口契约和字段映射
+  - 测试输出
+- 输出：
+  - 子代理交接摘要
+  - 前后端集成结论
+  - 未解决的联调问题
+  - 主 agent 回收处理结果
+- 是否允许改代码：必要时允许，但只能处理集成缺口和冲突。
+- 是否需要用户确认：交接结果改变计划或风险升高时需要确认。
+- 执行要求：
+  - 必须检查前后端字段、状态、错误处理和权限表现是否一致。
+  - 未启动的计划内 subagent 必须说明原因并给出主 agent 替代产出。
+
+---
+
+### 8. 代码审查
+
+- 使用：
+  - `backend-feature-design-review`
+  - `ui-ux-pro-max`
+  - `reviewer`
+- 输入：
+  - 当前 diff
+  - 协同设计结果
+  - 项目规则
+  - 测试计划
+- 输出：
+  - 后端架构审查结果
+  - UI/UX 审查结果
+  - 通用代码审查结果
+  - 历史问题 / 本次新增问题 / 本次扩大问题分类
+  - 必须修复项
+- 是否允许改代码：审查阶段默认否；发现本次新增阻塞问题后，回到执行阶段修复。
+- 是否需要用户确认：涉及范围扩大或取舍时需要确认。
+- 执行要求：
+  - 后端部分必须再次使用 `backend-feature-design-review`。
+  - 通用审查交给 `reviewer`；不可用时由主 agent 按审查职责替代并说明。
+
+---
+
+### 9. 测试、联调与真实浏览器验证
+
+- 使用：
+  - 项目测试命令
+  - `playwright-local-runtime`
+  - `superpowers:verification-before-completion`
+- 输入：
+  - 修改后的前后端代码
+  - 联调计划
+  - 页面验收路径
+- 输出：
+  - 实际运行命令
+  - 后端测试结果
+  - 前端构建或测试结果
+  - Playwright / 浏览器验证结果
+  - 未覆盖点
+- 是否允许改代码：发现问题时回到执行阶段修复。
+- 是否需要用户确认：测试无法运行、需要替代验证或风险较高时需要确认。
+- 执行要求：
+  - 必须覆盖接口联调和真实浏览器路径。
+  - 不得伪造测试结果。
+
+---
+
+### 10. 验收
+
+- 使用：
+  - 主 agent
+  - acceptance checklist
+- 输入：
+  - 最终 diff
+  - 测试、联调和浏览器验证结果
+  - 审查结果
+- 输出：
+  - 变更摘要
+  - 修改文件
+  - 验证命令和结果
+  - 剩余风险
+  - 建议验收路径
+  - 实际使用的 skills / subagents / 替代执行说明
+- 是否允许改代码：否。
+- 是否需要用户确认：由用户最终验收。
+- 执行要求：
+  - 最终说明必须包含前后端联调和浏览器验证是否完成。

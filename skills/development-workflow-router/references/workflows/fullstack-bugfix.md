@@ -1,21 +1,242 @@
 # Fullstack Bugfix Workflow
 
-适用于 bug 涉及前后端边界、接口契约、数据结构或联调问题。
+当前端现象和后端接口、字段、权限、数据口径、状态码、错误处理或联调链路相关时，必须分类为 `fullstack-bugfix`。不要在根因未确认前只按前端或后端单侧修复。
 
-## 推荐流程
+## 阶段
 
-`superpowers:systematic-debugging` -> 项目上下文读取 -> 复现或确认证据 -> 判断前后端责任边界 -> 检查接口契约一致性 -> 必要时使用 `backend-feature-design-review` -> `superpowers:writing-plans` -> 用户确认 -> 后端修复 -> 前端修复 -> 后端审查 -> 前端审查 -> 联调 -> Playwright 或浏览器回归测试 -> 验收。
+### 1. Bug 复现与系统化调试
 
-## 规则
+- 使用：
+  - `superpowers:systematic-debugging`
+  - `debugger`
+  - `playwright-local-runtime`（需要真实浏览器复现时）
+- 输入：
+  - 用户描述
+  - 页面路径或接口请求
+  - 报错信息
+  - 失败测试
+  - 控制台、网络请求、后端日志
+- 输出：
+  - 可复现步骤
+  - 实际现象
+  - 期望现象
+  - 前后端影响范围
+  - 初步根因假设
+- 是否允许改代码：否。
+- 是否需要用户确认：复现信息不足、页面或接口不明确、影响范围不清时需要确认。
+- 执行要求：
+  - 不得跳过 bug-reproduce。
+  - 需要真实浏览器时必须使用 Playwright 或项目认可的浏览器验证方式。
 
-- 必须先判断责任边界。
-- 优先检查前端传参、后端返回、字段命名、权限、状态码、数据状态。
-- 前后端修复后必须联调。
-- Playwright 必须覆盖 bug 复现路径。
-- 在当前 Windows Codex 环境运行 Playwright 时，使用 `playwright-local-runtime`。
-- 不允许只改一端后直接验收，除非有明确证据证明另一端无需修改。
+---
 
-## 推荐职责
+### 2. 前后端责任边界定位
 
-- Skill：`backend-feature-design-review`、`ui-ux-pro-max`、`playwright-local-runtime`、`superpowers:systematic-debugging`、`superpowers:test-driven-development`。
-- Subagent：`debugger`、`api-designer`、`spring-boot-engineer`、`frontend-developer`、`reviewer`。
+- 使用：
+  - `superpowers:systematic-debugging`
+  - `debugger`
+  - `api-designer`
+- 输入：
+  - 复现结果
+  - 前端网络请求和状态
+  - 后端接口、日志和测试
+  - API 契约
+- 输出：
+  - 已验证根因
+  - 前端责任
+  - 后端责任
+  - 接口契约差异
+  - 回归风险
+- 是否允许改代码：否。
+- 是否需要用户确认：根因不唯一、需要改变契约或业务行为时需要确认。
+- 执行要求：
+  - `api-designer` 用于判定接口契约、兼容性和前后端字段语义。
+  - 修复会新增功能或改变业务行为时，必须补充 `superpowers:brainstorming`。
+
+---
+
+### 3. 修复方案设计
+
+- 使用：
+  - `backend-feature-design-review`
+  - `ui-ux-pro-max`
+  - `api-designer`
+  - `sql-pro`
+- 输入：
+  - 已验证根因
+  - 受影响页面、接口、Service、Mapper/DAO/Repository、SQL
+  - 历史数据和兼容性约束
+- 输出：
+  - 前端修复方案
+  - 后端修复方案
+  - API 兼容性结论
+  - 数据库或 SQL 风险
+  - 浏览器和接口回归测试点
+- 是否允许改代码：否。
+- 是否需要用户确认：修复影响接口、数据库、权限、历史数据、UI 行为或业务语义时需要确认。
+- 执行要求：
+  - 后端复杂修复使用 `backend-feature-design-review`。
+  - UI/UX 风险使用 `ui-ux-pro-max`。
+  - 涉及 SQL、索引或数据口径时使用 `sql-pro`。
+
+---
+
+### 4. `superpowers:writing-plans`
+
+- 使用：
+  - `superpowers:writing-plans`
+- 输入：
+  - 根因定位结果
+  - 前后端修复方案
+  - 回归测试点
+  - 项目构建、测试和启动约束
+- 输出：
+  - 前后端文件级修复计划
+  - 接口联调计划
+  - 回归测试与 Playwright 验证计划
+  - 风险和回滚方案
+  - 子代理分工计划
+- 是否允许改代码：否。
+- 是否需要用户确认：是，计划未确认前不得实现。
+- 执行要求：
+  - 计划必须体现 `superpowers:executing-plans with TDD`。
+  - 必须说明如何证明原 bug 已被修复。
+
+---
+
+### 5. 用户确认
+
+- 使用：
+  - 主 agent
+- 输入：
+  - 修复计划
+  - 前后端责任边界
+  - 风险和回归测试点
+- 输出：
+  - 用户确认结果
+  - 需要调整的计划
+- 是否允许改代码：否。
+- 是否需要用户确认：是。
+- 执行要求：
+  - 用户未确认前不得修改代码、执行迁移或启动实现型 subagent。
+
+---
+
+### 6. `superpowers:executing-plans` with TDD
+
+- 使用：
+  - `superpowers:executing-plans`
+  - `spring-boot-engineer`
+  - `frontend-developer`
+- 输入：
+  - 已确认的修复计划
+  - 回归测试和联调计划
+  - 可修改范围
+- 输出：
+  - 后端修复
+  - 前端修复
+  - 回归测试或验证脚本
+  - 实际修改文件
+  - 偏离计划的说明
+- 是否允许改代码：是，仅限用户确认后的计划范围。
+- 是否需要用户确认：进入本阶段前需要确认；偏离计划时需要再次确认。
+- 执行要求：
+  - 优先补能复现 bug 的测试或浏览器验证脚本，再修复。
+  - 后端修复优先交给 `spring-boot-engineer`，前端修复优先交给 `frontend-developer`。
+  - 不允许多个 subagent 同时修改同一文件或同一模块。
+
+---
+
+### 7. 子代理交接与联调回收
+
+- 使用：
+  - 主 agent
+  - 已启动的 subagents
+  - `references/review-and-handoff.md`
+- 输入：
+  - 后端交付结果
+  - 前端交付结果
+  - 接口契约和字段映射
+  - 回归测试输出
+- 输出：
+  - 子代理交接摘要
+  - 前后端修复集成结论
+  - 未解决的联调问题
+  - 主 agent 回收处理结果
+- 是否允许改代码：必要时允许，但只能处理集成缺口和冲突。
+- 是否需要用户确认：交接结果改变计划或风险升高时需要确认。
+- 执行要求：
+  - 必须检查前后端字段、状态码、错误处理、权限表现和页面反馈是否一致。
+  - 未启动的计划内 subagent 必须说明原因并给出主 agent 替代产出。
+
+---
+
+### 8. 代码审查
+
+- 使用：
+  - `backend-feature-design-review`
+  - `ui-ux-pro-max`
+  - `reviewer`
+- 输入：
+  - 当前 diff
+  - 根因和修复方案
+  - 回归测试和联调计划
+- 输出：
+  - 后端设计审查结果
+  - UI/UX 审查结果
+  - 通用代码审查结果
+  - 历史问题 / 本次新增问题 / 本次扩大问题分类
+  - 必须修复项
+- 是否允许改代码：审查阶段默认否；发现本次新增阻塞问题后，回到执行阶段修复。
+- 是否需要用户确认：涉及范围扩大或取舍时需要确认。
+- 执行要求：
+  - 后端修复必须检查分层、命名、校验位置、事务边界和重复逻辑。
+  - 前端修复必须检查真实交互、布局、响应式和错误状态。
+
+---
+
+### 9. 回归测试、联调与真实浏览器验证
+
+- 使用：
+  - 项目测试命令
+  - `playwright-local-runtime`
+  - `superpowers:verification-before-completion`
+- 输入：
+  - 修复后的前后端代码
+  - 回归测试和联调计划
+  - 页面复现路径
+- 输出：
+  - 实际运行命令
+  - 后端测试结果
+  - 前端构建或测试结果
+  - Playwright / 浏览器验证结果
+  - 未覆盖点
+  - 无法运行时的原因和替代验证
+- 是否允许改代码：发现问题时回到执行阶段修复。
+- 是否需要用户确认：测试无法运行、需要替代验证或风险较高时需要确认。
+- 执行要求：
+  - 必须证明原 bug 已修复，并覆盖接口联调和页面表现。
+  - 不得伪造测试结果。
+
+---
+
+### 10. 验收
+
+- 使用：
+  - 主 agent
+  - acceptance checklist
+- 输入：
+  - 最终 diff
+  - 回归测试、联调和浏览器验证结果
+  - 审查结果
+- 输出：
+  - 修复摘要
+  - 修改文件
+  - 验证命令和结果
+  - 剩余风险
+  - 建议验收路径
+  - 实际使用的 skills / subagents / 替代执行说明
+- 是否允许改代码：否。
+- 是否需要用户确认：由用户最终验收。
+- 执行要求：
+  - 最终说明必须包含 bug 复现、根因、前后端修复、联调和浏览器验证证据。

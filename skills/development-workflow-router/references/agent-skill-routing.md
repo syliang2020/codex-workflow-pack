@@ -2,6 +2,12 @@
 
 用于选择、执行和回收本机已有 skills、plugins 和 subagents。核心规则：列出名称不等于使用；必须执行对应职责，或说明不可用并由主 agent 替代。
 
+## 与 Workflow 的关系
+
+- `references/workflows/*.md` 是阶段顺序和阶段要求的唯一来源。
+- 本文件只解释某个阶段写了 skill / subagent 时，如何判断可用、如何执行、如何替代、如何回收。
+- 如果本文件的推荐映射与 workflow 阶段冲突，以 workflow 为准。
+
 ## 使用定义
 
 ### Skill 使用
@@ -30,7 +36,7 @@
 如果 skill 或 subagent 不可用，必须输出：
 
 ```text
-未使用 <skill/subagent>。
+未使用/未启动 <skill/subagent>。
 原因：<不可用原因>。
 替代：由主 agent 按 <skill/subagent> 的职责执行。
 替代产出：<设计/审查/实现/验证结果>。
@@ -45,6 +51,8 @@
 - 阶段触发 skill 时，必须实际读取并执行该 skill。
 - 阶段需要 subagent 且用户已确认计划时，必须启动 subagent；不可用时主 agent 替代执行。
 - 每个阶段输出必须记录“实际使用的 skill / subagent / 替代执行”。
+- workflow 标记“不允许改代码”的阶段，不得启动实现型 subagent。
+- workflow 标记“需要用户确认”的阶段，必须停止等待确认。
 
 ## prompt-preview 路由规则
 
@@ -59,18 +67,52 @@
 - 必须生成任务定制的【Skills 与子代理执行计划】，分别列出“必须使用/启动”“条件使用/启动”“明确不使用/不启动”。
 - 对于常见但本次不适用的 skill 或 subagent，必须写明不使用/不启动的原因和主 agent 需要覆盖的检查项。
 
+## Stage 绑定规则
+
+### Feature
+
+- `superpowers:brainstorming`：feature / 行为变更的第一阶段。
+- `feature-doc-pack`：需要协作文档时在设计阶段后、`writing-plans` 前使用；必须先询问用户。
+- `backend-feature-design-review`：后端复杂功能编码前设计门禁；实现后后端代码审查阶段再次使用。
+- `ui-ux-pro-max`：UI/UX 设计、审查和可访问性检查阶段使用。
+- `superpowers:writing-plans`：设计确认后、实现前使用。
+- `superpowers:executing-plans`：用户确认计划后使用，并把 TDD 或回归测试策略嵌入执行。
+- `superpowers:verification-before-completion`：验收前使用。
+
+### Bugfix
+
+- `superpowers:systematic-debugging`：bugfix 第一阶段，负责复现、现象确认、根因假设和验证路径。
+- `superpowers:brainstorming`：修复会新增功能或改变业务行为时，在根因确认后补充使用。
+- `backend-feature-design-review`：后端复杂修复设计阶段按需使用；后端代码审查阶段按需或按 workflow 要求再次使用。
+- `ui-ux-pro-max`：前端 UI/UX bugfix 的方案设计、审查和浏览器检查点。
+- `superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`：按 workflow 阶段使用。
+
 ## Skill 路由
 
 - 新功能、创建组件、修改业务行为、需求不清或需要澄清范围：使用 `superpowers:brainstorming`。
 - bugfix、失败测试、报错、异常行为：使用 `superpowers:systematic-debugging`。
-- 新功能或 bugfix 实现前：使用 `superpowers:test-driven-development`，除非用户明确允许例外或项目不适用，并说明原因。
 - 需要协作文档、前后端联调、接口字段、数据库、复杂规则或进度追踪：先询问是否使用 `feature-doc-pack`；用户确认后使用。
 - 后端复杂功能、数据库字段、接口变更、复杂校验、保存/编辑/删除流程、事务边界、外部调用或历史数据兼容：编码前使用 `backend-feature-design-review`。
 - 文档和设计确认后：使用 `superpowers:writing-plans`。
-- 计划确认后开始执行：使用 `superpowers:executing-plans` 或 `superpowers:subagent-driven-development`。
+- 计划确认后开始执行：使用 `superpowers:executing-plans`；TDD 或回归测试策略写入执行阶段。
 - 运行 Playwright 或浏览器真实测试，且处于 Windows Codex 环境：按需要使用 `playwright-local-runtime`。
 - 前端体验、UI/UX 审查或页面交互质量：使用 `ui-ux-pro-max`。
 - 完成前声明通过或完成：使用 `superpowers:verification-before-completion`。
+
+## Subagent 路由
+
+- `spring-boot-engineer`：Spring Boot 后端实现、配置、Service、Controller、数据访问落地。
+- `api-designer`：接口契约、字段兼容性、REST 设计和版本演进。
+- `sql-pro`：SQL、迁移草案、索引建议、查询设计、数据库问题分析。
+- `database-optimizer`：执行计划、慢查询、索引性能、数据库性能优化。
+- `frontend-developer`：前端实现、前端功能、生产级交互行为。
+- `ui-designer`：UI 方案、交互边界、实现前设计决策。
+- `ui-fixer`：已复现 UI 问题的最小修复。
+- `reviewer`：PR 风格代码审查，重点是正确性、安全、行为回归和缺失测试。
+- `debugger`：报错、失败测试、运行时行为和深度 bug 定位。
+- `security-auditor`：鉴权、权限、敏感信息、输入校验和安全风险。
+- `microservices-architect`：服务边界、服务间契约、分布式一致性和架构取舍。
+- `product-manager`：产品范围、优先级、用户影响和需求收敛。
 
 ## Prompt-preview Skills 计划模板
 
@@ -87,29 +129,6 @@
 - 需要读取的 `SKILL.md` 或 reference。
 - 预期产出。
 - 不可用时主 agent 的替代职责。
-
-常用映射：
-
-- `backend-bugfix`：必须规划 `superpowers:systematic-debugging`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`；条件规划 `backend-feature-design-review`、`feature-doc-pack`、`playwright-local-runtime`。
-- `backend-feature`：必须规划 `superpowers:brainstorming`、`backend-feature-design-review`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`；涉及协作或复杂接口/数据库时条件规划 `feature-doc-pack`。
-- `frontend-bugfix`：必须规划 `superpowers:systematic-debugging`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`superpowers:verification-before-completion`；涉及真实页面或 UI 时规划 `playwright-local-runtime` 和 `ui-ux-pro-max`。
-- `frontend-feature`：必须规划 `superpowers:brainstorming`、`ui-ux-pro-max`、`superpowers:test-driven-development`、`superpowers:writing-plans`、`superpowers:executing-plans`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
-- `fullstack-feature` / `fullstack-bugfix`：必须同时覆盖后端、接口、前端、测试和验收所需 skills；涉及协作文档时先询问并条件规划 `feature-doc-pack`。
-
-## Subagent 路由
-
-- `spring-boot-engineer`：Spring Boot 后端实现、配置、Service、Controller、数据访问落地。
-- `api-designer`：接口契约、字段兼容性、REST 设计和版本演进。
-- `sql-pro`：SQL、迁移草案、索引建议、查询设计、数据库问题分析。
-- `database-optimizer`：执行计划、慢查询、索引性能、数据库性能优化。
-- `frontend-developer`：前端实现、前端功能、生产级交互行为。
-- `ui-designer`：UI 方案、交互边界、实现前设计决策。
-- `ui-fixer`：已复现 UI 问题的最小安全修复。
-- `reviewer`：PR 风格代码审查，重点是正确性、安全、行为回归和缺失测试。
-- `debugger`：报错、失败测试、运行时行为和深度 bug 定位。
-- `security-auditor`：鉴权、权限、敏感信息、输入校验和安全风险。
-- `microservices-architect`：服务边界、服务间契约、分布式一致性和架构取舍。
-- `product-manager`：产品范围、优先级、用户影响和需求收敛。
 
 ## Prompt-preview Subagents 计划模板
 
@@ -131,13 +150,14 @@
 - 验证要求。
 - 不可用时主 agent 的替代职责。
 
-常用映射：
+## 常用映射
 
-- `backend-bugfix`：通常规划 `debugger`（只读根因定位）、`spring-boot-engineer`（后端修复）、`reviewer`（审查）；涉及接口契约或返回兼容性时条件启动 `api-designer`；涉及 SQL/索引/数据库时条件启动 `sql-pro`。
-- `backend-feature`：通常规划 `api-designer`、`spring-boot-engineer`、`reviewer`；涉及 SQL/索引/数据库时条件启动 `sql-pro`；涉及权限或敏感信息时条件启动 `security-auditor`。
-- `frontend-bugfix`：通常规划 `debugger` 或 `ui-fixer`、`frontend-developer`、`reviewer`；复杂体验问题条件启动 `ui-designer`。
-- `frontend-feature`：通常规划 `ui-designer`、`frontend-developer`、`reviewer`。
-- `fullstack-feature` / `fullstack-bugfix`：通常规划 `api-designer`、`spring-boot-engineer`、`frontend-developer`、`reviewer`；涉及数据库时条件启动 `sql-pro`；涉及 UI 体验时条件启动 `ui-designer`。
+- `backend-feature`：通常规划 `api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`spring-boot-engineer`、`reviewer`。
+- `frontend-feature`：通常规划 `ui-designer`、`ui-ux-pro-max`、`api-designer`（确认接口依赖）、`frontend-developer`、`reviewer`、Playwright 验证。
+- `fullstack-feature`：通常规划 `api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`backend-feature-design-review`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、Playwright 联调。
+- `backend-bugfix`：通常规划 `debugger`、`backend-feature-design-review`（复杂修复时）、`spring-boot-engineer`、`reviewer`；涉及接口契约时规划 `api-designer`，涉及 SQL 时规划 `sql-pro`。
+- `frontend-bugfix`：通常规划 `debugger` 或 `ui-fixer`、`ui-ux-pro-max`、`frontend-developer`、`reviewer`、Playwright 回归。
+- `fullstack-bugfix`：通常规划 `debugger`、`api-designer`、`backend-feature-design-review`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、Playwright 联调；涉及数据库时规划 `sql-pro`。
 
 ## 子代理任务模板
 
@@ -156,7 +176,7 @@
 
 ## 协作文档门禁
 
-命中 `feature-doc-pack` 场景时，不要直接生成文档。先询问用户是否生成协作文档；用户确认后再进入文档流程。文档确认后，仍需按任务类型继续进入后端设计门禁、计划、实现、审查和测试。
+命中 `feature-doc-pack` 场景时，不要直接生成文档。先询问用户是否生成协作文档；用户确认后再进入文档流程。文档确认后，仍需按任务类型继续进入设计门禁、计划、实现、审查和测试。
 
 推荐顺序：
 
