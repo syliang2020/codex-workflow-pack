@@ -31,12 +31,18 @@
 
 当前会话执行模式。
 
-Codex 会先判断任务类型和置信度，然后读取对应 workflow，并直接进入 workflow 的第一个实际阶段：
+Codex 会先判断任务类型和置信度，然后读取对应 workflow，并使用和 prompt-preview 生成的 workflow prompt 同一套流程结构直接执行：
+
+```text
+任务分类 -> 总闸门 -> Workflow 阶段 -> 本次需求特殊要求 -> 验收输出要求
+```
+
+第一个实际阶段规则：
 
 - feature 类任务进入 `superpowers:brainstorming`
 - bugfix 类任务进入 `bug-reproduce` / `superpowers:systematic-debugging`
 
-direct-flow 不生成完整提示词，也不只输出流程卡片。每个阶段结束后输出阶段产物并等待用户确认，`writing-plans` 确认前不写代码。
+direct-flow 不生成完整提示词，也不只输出流程卡片。它和 prompt-preview 的区别只是是否输出可复制提示词：prompt-preview 只生成提示词，direct-flow 在当前会话里按同一套阶段执行。每个阶段结束后输出阶段产物并等待用户确认，`writing-plans` 确认前不写代码。
 
 ### prompt-preview
 

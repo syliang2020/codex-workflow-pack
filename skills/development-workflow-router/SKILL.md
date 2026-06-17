@@ -42,37 +42,46 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 
 1. 判断任务类型和分类置信度。
 2. 读取对应 `references/workflows/*.md`。
-3. 不输出完整提示词。
-4. 不只输出简短流程卡片。
+3. 使用和 prompt-preview 生成的 workflow prompt 同一套结构：任务分类、总闸门、Workflow 阶段、本次需求特殊要求、验收输出要求。
+4. 不输出完整提示词，不只输出简短流程卡片。
 5. 直接进入 workflow 的第一个实际阶段。
-6. 第一阶段结束后，输出阶段产物、风险和下一步。
-7. 等待用户确认阶段产物。
-8. 用户确认后进入下一阶段。
-9. 到达 `superpowers:writing-plans` 时，必须输出计划并等待用户确认。
-10. 用户确认 writing-plans 后，才进入 `superpowers:executing-plans`。
-11. executing-plans 必须遵循 TDD 或回归测试策略。
-12. 完成后进入审查、测试、验收。
+6. 每个阶段结束后，输出阶段产物、风险和下一步。
+7. workflow 阶段标记需要用户确认时，必须等待用户确认。
+8. 到达 `superpowers:writing-plans` 时，必须输出计划并等待用户确认。
+9. 用户确认 writing-plans 后，才进入 `superpowers:executing-plans`。
+10. executing-plans 必须遵循 TDD 或回归测试策略。
+11. 完成后进入审查、测试、验收。
 
-direct-flow 第一轮必须是 workflow 第一个实际阶段的阶段产物，而不是流程卡片。
+direct-flow 第一轮和后续阶段必须使用 workflow prompt 的同构结构，但不输出可复制提示词。
 
 输出格式：
 
 ```text
 工作模式：direct-flow
-任务类型：<...>
-分类置信度：<...>
-当前阶段：<workflow 第一个实际阶段>
 
-【阶段目标】
-...
+【任务分类】
+- 任务类型：
+- 分类置信度：
+- 已知需求：
+- 不确定点和假设条件：
 
-【阶段产物】
-...
+【总闸门】
+- 按 workflow 阶段执行。
+- 每个阶段结束输出阶段产物、风险和下一步。
+- writing-plans 未确认前不写代码。
+- skill / subagent 不可用时说明原因，并由主 agent 替代。
 
-【风险和不确定点】
-...
-
-【需要用户确认的问题】
+【当前 Workflow 阶段】
+阶段名称：
+- 使用：
+- 目标：
+- 输入：
+- 输出：
+- 是否允许改代码：
+- 是否需要用户确认：
+- 阶段产物：
+- 风险和不确定点：
+- 下一步：
 ...
 
 请确认以上阶段产物。确认后我再进入下一阶段。
