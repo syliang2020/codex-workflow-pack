@@ -104,7 +104,7 @@ direct-flow 第一轮必须是 workflow 第一个实际阶段的阶段产物，�
 prompt-preview 生成的提示词必须以类似下面的内容开头：
 
 ```text
-请使用 superpowers 完成本次开发。你现在拿到的是 superpowers workflow prompt，不是直接实现提示词。
+请使用 superpowers 完成本次开发。这是 workflow prompt，请按阶段执行，计划确认前不要写代码。
 ```
 
 不得写要求下一轮再次调用 `development-workflow-router` 的递归提示。

@@ -45,7 +45,7 @@ prompt-preview 只负责把 workflow 转换成可复制的 superpowers workflow 
 生成的完整提示词必须以类似下面的内容开头：
 
 ```text
-请使用 superpowers 完成本次开发。你现在拿到的是 superpowers workflow prompt，不是直接实现提示词。
+请使用 superpowers 完成本次开发。这是 workflow prompt，请按阶段执行，计划确认前不要写代码。
 ```
 
 不得写要求下一轮再次调用 `development-workflow-router` 的递归提示。
