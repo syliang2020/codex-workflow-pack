@@ -49,7 +49,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 7. workflow 阶段标记需要用户确认时，必须等待用户确认。
 8. 到达 `superpowers:writing-plans` 时，必须输出计划并等待用户确认。
 9. 用户确认 writing-plans 后，才进入 `superpowers:executing-plans`。
-10. executing-plans 必须遵循 TDD 或回归测试策略。
+10. feature 类任务的 executing-plans 使用普通 TDD；bugfix 类任务的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
 11. 完成后进入审查、测试、验收。
 
 direct-flow 第一轮和后续阶段必须使用 workflow prompt 的同构结构，但不输出可复制提示词。
@@ -189,12 +189,11 @@ prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每
 
 ## 核心闸门
 
-- feature 类任务的第一个实际阶段必须是 `superpowers:brainstorming`。
-- bugfix 类任务的第一个实际阶段必须是 bug-reproduce / `superpowers:systematic-debugging`。
-- bugfix 如果会新增功能或改变业务行为，必须在根因确认后补充 `superpowers:brainstorming`。
+- feature 默认先 `superpowers:brainstorming`；bugfix 默认先 bug-reproduce / `superpowers:systematic-debugging`，不默认先 `superpowers:brainstorming`。只有 bugfix 修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时，才在根因定位后补充 `superpowers:brainstorming`。
 - 不得跳过 `superpowers:writing-plans`。
 - writing-plans 未经用户确认前不得修改代码。
-- `superpowers:executing-plans` 阶段必须内置 TDD 或回归测试策略。
+- feature 类任务的 `superpowers:executing-plans` 阶段必须使用普通 TDD：先写失败测试，再实现功能，再测试通过。
+- bugfix 类任务的 `superpowers:executing-plans` 阶段必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
 - 后端功能流程中 `backend-feature-design-review` 必须出现两次：编码前设计门禁、编码后代码审查。
 - `api-designer` 和 `sql-pro` 要作为明确的协同设计阶段，是否真实启动按任务影响范围和可用性判断。
 - 不得跳过审查、测试和验收。

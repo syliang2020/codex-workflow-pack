@@ -62,7 +62,7 @@
 - 使用：
   - `ui-ux-pro-max`
   - `api-designer`（涉及接口契约时）
-  - `superpowers:brainstorming`（修复会改变业务行为时）
+  - `superpowers:brainstorming`（修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时）
 - 输入：
   - 已验证根因
   - 受影响页面、组件、状态和接口调用
@@ -105,25 +105,32 @@
 
 ---
 
-### 5. `superpowers:executing-plans` with regression test
+### 5. `superpowers:executing-plans` with bugfix TDD
 
 - 使用：
   - `superpowers:executing-plans`
+  - `superpowers:test-driven-development`
   - `frontend-developer`
-  - `ui-fixer`
+  - `ui-fixer`（仅 UI 修复需要时）
 - 输入：
   - 已确认的修复计划
   - 回归测试计划
   - 可修改范围
 - 目标：
   - 使用 `frontend-developer` 或 `ui-fixer` 修复
-  - 先补复现问题的失败测试或浏览器验证脚本，再修复
+  - 必须先补失败单测、组件测试、E2E 脚本或可重复浏览器验证脚本，证明当前前端 bug 存在
+  - 必须确认该测试或验证脚本在修复前失败
+  - 再做最小前端修复
+  - 重新运行测试或浏览器验证，确认通过
+  - 如果项目没有可用自动化测试条件，必须说明原因、可重复的最小复现步骤、替代验证路径和风险
+  - 不得把未运行的测试或验证标记为 `passed`
   - 不做无关重构
 - 输出：
   - 前端修复
-  - 回归测试或验证脚本
+  - 修复前失败、修复后通过的回归测试或验证脚本
   - 实际修改文件
   - 初步验证结果
+  - 无法自动化测试时的原因、可重复的最小复现步骤、替代验证路径和风险，如适用
   - 子代理交接报告，如使用 subagent
 - 是否允许改代码：
   - 是，仅限用户确认后的计划范围

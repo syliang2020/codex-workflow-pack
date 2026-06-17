@@ -61,7 +61,7 @@
   - `api-designer`
   - `sql-pro`
   - `backend-feature-design-review`
-  - `superpowers:brainstorming`（修复会改变业务行为时）
+  - `superpowers:brainstorming`（修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时）
 - 输入：
   - 已验证根因
   - 受影响接口、Service、Mapper / DAO / Repository、SQL
@@ -105,23 +105,30 @@
 
 ---
 
-### 5. `superpowers:executing-plans` with regression test
+### 5. `superpowers:executing-plans` with bugfix TDD
 
 - 使用：
   - `superpowers:executing-plans`
+  - `superpowers:test-driven-development`
   - `spring-boot-engineer`
 - 输入：
   - 已确认的修复计划
   - 回归测试计划
   - 可修改范围
 - 目标：
-  - 先补失败测试或回归测试，再修复
-  - 保持最小改动，不做无关重构
+  - 必须先写或调整失败回归测试，证明当前 bug 存在
+  - 必须确认该测试在修复前失败
+  - 再做最小代码修复
+  - 重新运行测试，确认失败测试变为通过
+  - 无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险
+  - 不得把未运行的测试或验证标记为 `passed`
+  - 不做无关重构，不扩大修复范围
 - 输出：
   - 后端修复
-  - 回归测试或验证用例
+  - 修复前失败、修复后通过的回归测试或验证用例
   - 实际修改文件
   - 测试初步结果
+  - 无法自动化测试时的原因、可重复的最小复现步骤、替代验证方式和风险，如适用
   - 子代理交接报告，如使用 subagent
 - 是否允许改代码：
   - 是，仅限用户确认后的计划范围

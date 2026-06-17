@@ -65,7 +65,7 @@
   - `ui-ux-pro-max`
   - `api-designer`
   - `sql-pro`
-  - `superpowers:brainstorming`（修复会改变业务行为时）
+  - `superpowers:brainstorming`（修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时）
 - 输入：
   - 已验证根因
   - 受影响页面、接口、Service、Mapper / DAO / Repository、SQL
@@ -110,10 +110,11 @@
 
 ---
 
-### 5. `superpowers:executing-plans` with regression test
+### 5. `superpowers:executing-plans` with fullstack bugfix TDD
 
 - 使用：
   - `superpowers:executing-plans`
+  - `superpowers:test-driven-development`
   - `spring-boot-engineer`
   - `frontend-developer`
 - 输入：
@@ -123,12 +124,18 @@
 - 目标：
   - 后端由 `spring-boot-engineer` 修复
   - 前端由 `frontend-developer` 修复
-  - 先补能复现 bug 的测试或浏览器验证脚本，再修复
+  - 必须先补能证明 bug 存在的失败回归测试、接口测试、前端测试或 Playwright 验证脚本
+  - 必须确认测试或验证在修复前失败
+  - 再按已确认计划做前后端最小修复
+  - 重新运行测试、联调和必要的浏览器验证，确认通过
+  - 如果只能做部分自动化测试，必须说明未覆盖部分、可重复的最小复现步骤、替代验证方式和风险
+  - 不得把未运行的测试或验证标记为 `passed`
 - 输出：
   - 后端修复
   - 前端修复
-  - 回归测试或验证脚本
+  - 修复前失败、修复后通过的回归测试或验证脚本
   - 实际修改文件
+  - 自动化测试未覆盖部分、可重复的最小复现步骤、替代验证方式和风险，如适用
   - 子代理交接报告
 - 是否允许改代码：
   - 是，仅限用户确认后的计划范围

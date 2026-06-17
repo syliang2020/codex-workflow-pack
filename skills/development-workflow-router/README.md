@@ -115,11 +115,13 @@ bug-reproduce / superpowers:systematic-debugging
 -> root cause
 -> fix design
 -> superpowers:writing-plans
--> superpowers:executing-plans with regression test
+-> superpowers:executing-plans with bugfix TDD
 -> code review
 -> regression tests / Playwright
 -> acceptance
 ```
+
+bugfix 不默认先 brainstorming；bugfix 默认先 systematic-debugging，并在 executing-plans 阶段执行 bugfix TDD：先写失败回归测试证明 bug 存在，再最小修复，再验证测试通过。
 
 ## 依赖和配合
 

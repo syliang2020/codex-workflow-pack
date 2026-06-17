@@ -67,7 +67,8 @@ prompt-preview 默认生成中等长度的 superpowers workflow prompt，建议�
 - 每个阶段结束都要输出阶段产物、风险和下一步。
 - 每个 Workflow 阶段都必须在“使用”字段中写明本阶段使用的 skill / subagent。
 - writing-plans 未确认前不得写代码。
-- executing-plans 必须遵循 TDD 或回归测试策略。
+- feature 的 executing-plans 必须遵循普通 TDD：先写失败测试，再实现功能，再测试通过。
+- bugfix 的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
 - 如果 skill 或 subagent 不可用，必须说明原因，并由主 agent 按同等职责执行，不得假装已调用。
 - 默认不要输出独立路由章节；只有用户明确要求完整 skills/subagents 使用计划时才额外输出。
 

@@ -98,7 +98,7 @@
 
 ---
 
-### 5. `superpowers:executing-plans` with TDD / regression test
+### 5. `superpowers:executing-plans` with TDD
 
 - 使用：
   - `superpowers:executing-plans`
@@ -109,7 +109,7 @@
   - 测试和浏览器验证计划
 - 目标：
   - 使用 `frontend-developer` 实现
-  - 先补必要测试或回归用例，再实现
+  - 使用普通 TDD：先写失败测试，再实现功能，再测试通过
   - 保持最小改动
 - 输出：
   - 前端实现

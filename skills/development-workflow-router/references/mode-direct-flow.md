@@ -48,7 +48,7 @@ direct-flow 必须读取当前任务类型对应的 `references/workflows/*.md`�
 11. workflow 阶段标记需要用户确认时，必须等待确认后再进入下一阶段。
 12. 到达 `superpowers:writing-plans` 时，必须输出计划并等待用户确认。
 13. 用户确认 writing-plans 后，才进入 `superpowers:executing-plans`。
-14. executing-plans 必须遵循 TDD 或回归测试策略。
+14. feature 类任务的 executing-plans 使用普通 TDD；bugfix 类任务的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
 15. 完成后进入审查、测试、验收。
 
 ## 总闸门
@@ -60,7 +60,8 @@ direct-flow 必须遵守和 prompt-preview 生成提示词相同的总闸门：
 - 每个阶段结束都要输出阶段产物、风险和下一步。
 - 每个 Workflow 阶段都必须在“使用”字段中写明本阶段使用的 skill / subagent。
 - writing-plans 未确认前不得写代码。
-- executing-plans 必须遵循 TDD 或回归测试策略。
+- feature 的 executing-plans 必须遵循普通 TDD：先写失败测试，再实现功能，再测试通过。
+- bugfix 的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
 - 如果 skill 或 subagent 不可用，必须说明原因，并由主 agent 按同等职责执行，不得假装已调用。
 - direct-flow 不输出独立路由章节；skill / subagent 使用情况随阶段输出和验收输出记录。
 
@@ -90,7 +91,7 @@ bugfix 类任务：
 bug-reproduce / superpowers:systematic-debugging
 ```
 
-如果 bugfix 会新增功能或改变业务行为，必须在根因确认后补充：
+bugfix 不默认先 `superpowers:brainstorming`。只有 bugfix 修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时，才在根因定位后补充：
 
 ```text
 superpowers:brainstorming
@@ -151,4 +152,4 @@ direct-flow 第一轮和后续阶段输出使用 workflow prompt 的同构结构
 - 禁止 bugfix 跳过 `superpowers:systematic-debugging`。
 - 禁止跳过 `superpowers:writing-plans`。
 - 禁止未确认 writing-plans 就修改代码。
-- 禁止跳过 TDD 或回归测试策略、审查、测试和验收。
+- 禁止 feature 跳过普通 TDD；禁止 bugfix 跳过 bugfix TDD、审查、测试和验收。

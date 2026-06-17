@@ -85,6 +85,23 @@
 - 是否需要确认：
   - 执行前需要确认 writing-plans；偏离计划时需要再次确认
 
+### `superpowers:executing-plans with bugfix TDD`
+
+- 输入：
+  - 已确认 writing-plans
+  - 已验证根因
+  - 可修改范围
+  - 回归测试计划
+- 输出：
+  - 修复前失败、修复后通过的回归测试或验证证据
+  - 最小代码修复
+  - 测试结果
+  - 无法编写自动化测试时的原因、可重复的最小复现步骤、替代验证方式和风险，如适用
+- 是否允许改代码：
+  - 是
+- 是否需要确认：
+  - 执行前需要确认 writing-plans；偏离计划时需要再次确认
+
 ## Prompt-preview 路由生成规则
 
 prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
@@ -136,11 +153,11 @@ prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
 ## 常用按需路由
 
 - `backend-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
-- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、`superpowers:executing-plans with TDD / regression test`、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
+- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
 - `fullstack-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`ui-ux-pro-max`、`backend-feature-design-review`、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
-- `backend-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer` / `sql-pro` / `backend-feature-design-review`（按影响范围）、`superpowers:writing-plans`、`superpowers:executing-plans with regression test`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
-- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `ui-fixer`、`ui-ux-pro-max`、`superpowers:writing-plans`、`superpowers:executing-plans with regression test`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
-- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、`superpowers:executing-plans with regression test`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `backend-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer` / `sql-pro` / `backend-feature-design-review`（按影响范围）、`superpowers:writing-plans`、`superpowers:executing-plans with bugfix TDD`、`superpowers:test-driven-development`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
+- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `ui-fixer`、`ui-ux-pro-max`、`superpowers:writing-plans`、`superpowers:executing-plans with bugfix TDD`、`superpowers:test-driven-development`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、`superpowers:executing-plans with fullstack bugfix TDD`、`superpowers:test-driven-development`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
 
 ## 子代理任务模板
 
