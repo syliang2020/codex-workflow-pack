@@ -65,9 +65,11 @@ prompt-preview 默认生成中等长度的 superpowers workflow prompt，建议�
 - 不要直接开始改代码。
 - 必须按下面阶段顺序执行。
 - 每个阶段结束都要输出阶段产物、风险和下一步。
+- 每个 Workflow 阶段都必须在“使用”字段中写明本阶段使用的 skill / subagent。
 - writing-plans 未确认前不得写代码。
 - executing-plans 必须遵循 TDD 或回归测试策略。
 - 如果 skill 或 subagent 不可用，必须说明原因，并由主 agent 按同等职责执行，不得假装已调用。
+- 默认不要输出独立路由章节；只有用户明确要求完整 skills/subagents 使用计划时才额外输出。
 
 【Workflow 阶段】
 
@@ -82,12 +84,6 @@ prompt-preview 默认生成中等长度的 superpowers workflow prompt，建议�
 2. 阶段名称
 ...
 
-【Skill / Subagent 路由】
-- 只列本次任务实际需要的 skills 和 subagents。
-- 不要展开无关 skill 或无关 subagent。
-- 如果环境不支持对应 subagent，必须说明原因，并由主 agent 按同等职责替代。
-- 如果用户明确要求完整路由清单，才展开“必须使用 / 条件使用 / 明确不使用”。
-
 【本次需求特殊要求】
 - 用户可在这里追加本次需求特殊限制。
 
@@ -98,20 +94,20 @@ prompt-preview 默认生成中等长度的 superpowers workflow prompt，建议�
 - 已知风险
 - 未完成项
 - 建议验收路径
+- 实际使用的 skills / subagents 和替代说明
 ```
 
 ## Skill / Subagent 路由生成规则
 
-默认只生成本次任务需要的路由，不生成全量清单。
+默认不生成独立的【Skill / Subagent 路由】章节。
 
-例如 `backend-bugfix` 通常只需要：
+prompt-preview 应把本次任务需要的 skill / subagent 写进每个 Workflow 阶段的“使用”字段，例如：
 
 ```text
-- bug 复现和根因定位：superpowers:systematic-debugging，必要时 debugger。
-- 修复计划：superpowers:writing-plans。
-- 执行阶段：superpowers:executing-plans with regression test，必要时 spring-boot-engineer。
-- 审查阶段：backend-feature-design-review / reviewer。
-- 验收前验证：superpowers:verification-before-completion。
+【阶段 1：bug-reproduce / superpowers:systematic-debugging】
+- 使用：superpowers:systematic-debugging，必要时 debugger。
+- 目标：复现 bug 并确认影响范围。
+- 输出：复现路径、期望结果、实际结果、初步根因假设。
 ```
 
 只有在用户明确要求“列出完整 skills 和 subagents 使用计划”时，才展开：
@@ -124,6 +120,8 @@ prompt-preview 默认生成中等长度的 superpowers workflow prompt，建议�
 - 条件启动
 - 明确不启动
 ```
+
+额外输出独立路由章节时，也只列本次任务相关项，不列无关 skill 或 subagent。
 
 ## 范围保真规则
 

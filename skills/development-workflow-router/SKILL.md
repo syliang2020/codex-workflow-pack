@@ -109,7 +109,7 @@ prompt-preview 生成的提示词必须以类似下面的内容开头：
 
 不得写要求下一轮再次调用 `development-workflow-router` 的递归提示。
 
-prompt-preview 默认只列本次任务需要的 skill / subagent 路由，不展开所有无关 skill 和 subagent。只有用户明确要求完整 skills/subagents 使用计划时，才展开“必须使用 / 条件使用 / 明确不使用 / 必须启动 / 条件启动 / 明确不启动”。
+prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每个 Workflow 阶段必须在“使用”字段中说明本阶段使用的 skill / subagent；只有用户明确要求完整 skills/subagents 使用计划时，才额外输出独立路由章节并展开“必须使用 / 条件使用 / 明确不使用 / 必须启动 / 条件启动 / 明确不启动”。
 
 ### review-only
 

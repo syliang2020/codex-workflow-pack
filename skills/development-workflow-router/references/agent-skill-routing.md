@@ -87,9 +87,9 @@
 
 ## Prompt-preview 路由生成规则
 
-prompt-preview 默认只生成本次任务需要的 skill / subagent 路由。
+prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
 
-不得强制展开所有无关 skill 和 subagent。
+默认应把本次任务需要的 skill / subagent 写入每个 Workflow 阶段的“使用”字段。
 
 只有在用户明确要求“完整 skills/subagents 使用计划”时，才展开：
 
@@ -100,16 +100,16 @@ prompt-preview 默认只生成本次任务需要的 skill / subagent 路由。
 - 条件启动
 - 明确不启动
 
-中等长度路由写法：
+默认阶段内写法：
 
 ```text
-【Skill / Subagent 路由】
-- 需求澄清：superpowers:brainstorming。
-- 接口设计：api-designer；不可用时主 agent 按接口契约职责替代。
-- 数据库设计：sql-pro；不涉及数据库时不列。
-- 执行：superpowers:executing-plans with TDD，后端优先 spring-boot-engineer。
-- 审查：backend-feature-design-review / reviewer。
-- 验收前验证：superpowers:verification-before-completion。
+【阶段 1：superpowers:brainstorming】
+- 使用：superpowers:brainstorming。
+- 输出：需求澄清、影响边界、不做事项、验收标准。
+
+【阶段 2：接口 / 数据库设计】
+- 使用：api-designer；涉及数据库时使用 sql-pro。
+- 输出：接口契约、数据来源、字段语义、数据库影响说明。
 ```
 
 ## 不可用降级规则

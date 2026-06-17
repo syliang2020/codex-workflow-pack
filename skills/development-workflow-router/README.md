@@ -46,7 +46,7 @@ direct-flow 不生成完整提示词，也不只输出流程卡片。每个阶�
 
 prompt-preview 会读取对应 workflow，并把该 workflow 转换成可复制提示词。生成的提示词不得要求下一轮再次调用 `development-workflow-router`，而应直接要求使用 superpowers 按阶段执行。
 
-默认输出中等长度的 workflow prompt，只列本次任务实际需要的 skill / subagent 路由；只有用户明确要求完整清单时，才展开所有“必须 / 条件 / 不使用”的 skills 和 subagents。
+默认输出中等长度的 workflow prompt，不单独生成【Skill / Subagent 路由】章节；每个阶段在“使用”字段中说明本阶段使用的 skill / subagent。只有用户明确要求完整清单时，才额外展开独立路由章节。
 
 ### review-only
 
