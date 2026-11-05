@@ -2,6 +2,8 @@
 
 适用于 bug 涉及前后端边界、接口契约、数据结构、权限、页面调用或联调问题的修复。
 
+执行分流、授权、专业门禁与最终收尾遵守 [Superpowers 兼容约定](../superpowers-compatibility.md)。
+
 ## 标准流程
 
 ### 1. `bug-reproduce` / `superpowers:systematic-debugging`
@@ -82,6 +84,7 @@
 - 是否允许改代码：
   - 否
 - 是否需要用户确认：
+  - 命中 AGENTS.md 的后端设计门禁时，必须展示审查结论并等待确认；不得默认为仅有风险才确认
   - 修复影响接口、数据库、权限、历史数据、UI 行为或业务语义时需要确认
 
 ---
@@ -103,44 +106,48 @@
   - 回归测试与 Playwright 验证计划
   - 风险和回滚方案
   - 子代理分工，如需要
+  - execution_mode、子代理授权依据、设计来源和落盘计划路径
 - 是否允许改代码：
   - 否
 - 是否需要用户确认：
-  - 是，计划确认前不得写代码
+  - 是，确认落盘计划及执行方式后才实现；已有执行方式选择时沿用
 
 ---
 
-### 5. `superpowers:executing-plans` with fullstack bugfix TDD
+### 5. 按已确认执行方式实现（全栈 bugfix TDD）
 
 - 使用：
-  - `superpowers:executing-plans`
+  - `superpowers:executing-plans`（execution_mode=inline，主 agent 实现）
+  - `superpowers:subagent-driven-development`（execution_mode=subagent-driven，已获子代理授权）
   - `superpowers:test-driven-development`
-  - `spring-boot-engineer`
-  - `frontend-developer`
+  - `spring-boot-engineer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担后端实现职责）
+  - `frontend-developer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担前端实现职责）
 - 输入：
+  - 已确认的 execution_mode、子代理授权依据和适用 AGENTS.md
   - 已确认的修复计划
   - 回归测试和联调计划
   - 可修改范围
 - 目标：
-  - 后端由 `spring-boot-engineer` 修复
-  - 前端由 `frontend-developer` 修复
+  - 后端由主 agent 或已授权的 `spring-boot-engineer` 按确认方式修复
+  - 前端由主 agent 或已授权的 `frontend-developer` 按确认方式修复
   - 必须先补能证明 bug 存在的失败回归测试、接口测试、前端测试或 Playwright 验证脚本
   - 必须确认测试或验证在修复前失败
   - 再按已确认计划做前后端最小修复
   - 重新运行测试、联调和必要的浏览器验证，确认通过
   - 如果只能做部分自动化测试，必须说明未覆盖部分、可重复的最小复现步骤、替代验证方式和风险
   - 不得把未运行的测试或验证标记为 `passed`
+  - 本阶段仅执行实现与任务检查，最终通用审查和 Finish 交回 router 后续阶段
 - 输出：
   - 后端修复
   - 前端修复
   - 修复前失败、修复后通过的回归测试或验证脚本
   - 实际修改文件
   - 自动化测试未覆盖部分、可重复的最小复现步骤、替代验证方式和风险，如适用
-  - 子代理交接报告
+  - 实现及验证证据、当前计划的 workspace / 台账路径；实际委派时附子代理交接报告
 - 是否允许改代码：
   - 是，仅限用户确认后的计划范围
 - 是否需要用户确认：
-  - 执行前必须已经确认 writing-plans；偏离计划时需要再次确认
+  - 执行前确认落盘计划和 execution_mode；范围、契约、业务语义或授权变化时再次确认，已授权范围内的实现细节记录裁决后继续
 
 ---
 
@@ -149,20 +156,21 @@
 - 使用：
   - `backend-feature-design-review`
   - `ui-ux-pro-max`
-  - `reviewer`
+  - 所选执行器的最终通用审查：获准时由只读 `reviewer` 执行，否则主 agent 自查并注明限制；复用等价审查证据
 - 输入：
   - 当前 diff
   - 根因和修复方案
   - 回归测试和联调计划
 - 目标：
   - 审查前端、后端、接口契约和计划外修改
+  - 专业检查纳入同一审查输入；本次新增或扩大的真实缺陷必须修复，包括 Minor 缺陷
 - 输出：
   - 后端审查结论
   - UI/UX 审查结论
   - 通用代码审查结论
   - 必须修复项
 - 是否允许改代码：
-  - 审查阶段不改代码；不通过则回到 executing-plans 修改
+  - 审查阶段不改代码；不通过则返回已确认的执行阶段修改
 - 是否需要用户确认：
   - 涉及范围扩大或修复取舍时需要确认
 
@@ -184,7 +192,7 @@
   - 前后端不一致问题，如有
   - 需要回到对应端修复的问题
 - 是否允许改代码：
-  - 不通过时回到对应端 executing-plans 修复
+  - 不通过时返回对应端已确认的执行阶段修复
 - 是否需要用户确认：
   - 联调问题改变设计或范围时需要确认
 
@@ -209,7 +217,7 @@
   - 浏览器验证结果
   - 失败或未运行说明
 - 是否允许改代码：
-  - failed 且确认是本次改动导致时，回到 executing-plans 修复
+  - failed 且确认是本次改动导致时，返回已确认的执行阶段修复
 - 是否需要用户确认：
   - 验收前需要给出测试结果；not-run 必须确认风险
 
@@ -225,6 +233,7 @@
   - 回归测试、联调和浏览器验证结果
   - 审查结果
 - 目标：
+  - 核对最终版本的专业门禁、审查和验证证据；后续代码修改必须已补审和回归
   - 汇总 bug 复现、根因、前后端修复、联调和浏览器验证证据
 - 输出：
   - bug 现象
@@ -236,6 +245,8 @@
   - 浏览器验证结果
   - 剩余风险
   - 建议验收路径
+  - 执行方式、审查执行者、执行裁决及保留的 workspace / 台账路径
+  - 全部验收证据齐备后才进入分支收尾；删除临时产物先遵守 AGENTS.md 的确认规则
 - 是否允许改代码：
   - 否
 - 是否需要用户确认：

@@ -7,6 +7,7 @@
 - `references/workflows/*.md` 是阶段顺序和阶段要求的唯一来源。
 - 本文件只解释如何做阶段绑定、按需路由和不可用降级。
 - 如果本文件的推荐映射与 workflow 阶段冲突，以 workflow 为准。
+- 执行器选择、派发授权和最终收尾遵守 [Superpowers 兼容约定](superpowers-compatibility.md)；所有规则继承适用 `AGENTS.md`。
 
 ## 阶段绑定规则
 
@@ -64,12 +65,16 @@
   - 测试计划
   - 风险和回滚方案
   - 子代理分工，如需要
+  - `execution_mode`、子代理授权依据、设计来源及计划文件路径
 - 是否允许改代码：
   - 否
 - 是否需要确认：
   - 是，计划确认前不得写代码
 
-### `superpowers:executing-plans with TDD`
+### 已确认执行方式：feature TDD
+
+- `inline`：使用 `superpowers:executing-plans`，由主 agent 实现。
+- `subagent-driven`：使用 `superpowers:subagent-driven-development`，仅在获准派发时由相应专业子代理实现。
 
 - 输入：
   - 已确认 writing-plans
@@ -83,9 +88,11 @@
 - 是否允许改代码：
   - 是
 - 是否需要确认：
-  - 执行前需要确认 writing-plans；偏离计划时需要再次确认
+  - 执行前确认计划及执行方式；范围、契约、业务语义或授权变化时确认，已授权范围内的实现细节记录裁决后继续
 
-### `superpowers:executing-plans with bugfix TDD`
+### 已确认执行方式：bugfix TDD
+
+执行器按上述 `execution_mode` 选择，修复与回归失败不得静默切换执行器。
 
 - 输入：
   - 已确认 writing-plans
@@ -100,7 +107,7 @@
 - 是否允许改代码：
   - 是
 - 是否需要确认：
-  - 执行前需要确认 writing-plans；偏离计划时需要再次确认
+  - 执行前确认计划及执行方式；范围、契约、业务语义或授权变化时确认，已授权范围内的实现细节记录裁决后继续
 
 ## Prompt-preview 路由生成规则
 
@@ -152,12 +159,14 @@ prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
 
 ## 常用按需路由
 
-- `backend-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
-- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
-- `fullstack-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`ui-ux-pro-max`、`backend-feature-design-review`、`superpowers:writing-plans`、`superpowers:executing-plans with TDD`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
-- `backend-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer` / `sql-pro` / `backend-feature-design-review`（按影响范围）、`superpowers:writing-plans`、`superpowers:executing-plans with bugfix TDD`、`superpowers:test-driven-development`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
-- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `ui-fixer`、`ui-ux-pro-max`、`superpowers:writing-plans`、`superpowers:executing-plans with bugfix TDD`、`superpowers:test-driven-development`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
-- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、`superpowers:executing-plans with fullstack bugfix TDD`、`superpowers:test-driven-development`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+下列路由中的执行技能按已确认方式二选一，专业角色只有在授权及阶段边界允许时才派发；inline 由主 agent 承担对应职责。编码后通用审查复用所选执行器的最终审查，不重复派发。
+
+- `backend-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`superpowers:writing-plans`、所选执行器（feature TDD）、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
+- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、所选执行器（feature TDD）、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
+- `fullstack-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`ui-ux-pro-max`、`backend-feature-design-review`、`superpowers:writing-plans`、所选执行器（feature TDD）、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `backend-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer` / `sql-pro` / `backend-feature-design-review`（按影响范围）、`superpowers:writing-plans`、所选执行器（bugfix TDD）、`superpowers:test-driven-development`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
+- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `ui-fixer`、`ui-ux-pro-max`、`superpowers:writing-plans`、所选执行器（bugfix TDD）、`superpowers:test-driven-development`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、所选执行器（全栈 bugfix TDD）、`superpowers:test-driven-development`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
 
 ## 子代理任务模板
 
@@ -173,3 +182,7 @@ prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
 8. 验证命令或无法验证的说明。
 9. 是否允许新增依赖；默认不允许。
 10. 与其它子代理的边界，避免同文件或同模块并行修改。
+11. 本次派发授权依据和已确认执行方式；只读检查、诊断或最终审查也不能省略授权判断。
+12. 应继承的 `AGENTS.md` 约束、当前计划及设计来源，以及最终审查、清理和分支收尾由 router 统筹的边界。
+
+具体调用参数以本会话工具 schema 为准。角色、模型与 reasoning effort 使用当前可用配置；不覆盖固定角色设置，不把完整历史 fork 与不支持的模型覆盖参数组合使用。

@@ -25,6 +25,8 @@
 
 direct-flow 必须读取当前任务类型对应的 `references/workflows/*.md`。
 
+同时遵守 [Superpowers 兼容约定](superpowers-compatibility.md)。direct-flow 表示在当前会话推进，不等于选择了某个执行器，也不自动授予子代理权限。
+
 执行阶段顺序必须使用该 workflow，不得自己重新发明流程，也不得和 prompt-preview 使用两套不同流程。
 
 ## 执行方式
@@ -47,9 +49,9 @@ direct-flow 必须读取当前任务类型对应的 `references/workflows/*.md`�
 10. 每个阶段结束后，输出阶段产物、风险和下一步。
 11. workflow 阶段标记需要用户确认时，必须等待确认后再进入下一阶段。
 12. 到达 `superpowers:writing-plans` 时，必须输出计划并等待用户确认。
-13. 用户确认 writing-plans 后，才进入 `superpowers:executing-plans`。
-14. feature 类任务的 executing-plans 使用普通 TDD；bugfix 类任务的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
-15. 完成后进入审查、测试、验收。
+13. 计划交接时明确 `execution_mode` 与授权依据：`inline` 进入 `superpowers:executing-plans`；已获子代理授权的 `subagent-driven` 进入 `superpowers:subagent-driven-development`。已有选择时沿用，连同落盘计划一次确认。
+14. feature 执行阶段使用普通 TDD；bugfix 执行阶段先失败回归测试、再最小修复、再验证通过。无法自动化或用户明确要求例外时说明原因、替代验证和风险；不得把 not-run 说成 passed。
+15. 实现阶段完成后交回 router，继续专业审查、最终通用审查、联调、测试和验收；清理及分支收尾按兼容约定延后，复用执行器已有审查证据。
 
 ## 总闸门
 
@@ -60,8 +62,8 @@ direct-flow 必须遵守和 prompt-preview 生成提示词相同的总闸门：
 - 每个阶段结束都要输出阶段产物、风险和下一步。
 - 每个 Workflow 阶段都必须在“使用”字段中写明本阶段使用的 skill / subagent。
 - writing-plans 未确认前不得写代码。
-- feature 的 executing-plans 必须遵循普通 TDD：先写失败测试，再实现功能，再测试通过。
-- bugfix 的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
+- feature 的所选执行器必须遵循普通 TDD；bugfix 的所选执行器必须遵循 bugfix TDD。用户明确给出的测试例外优先，未执行项仍如实记录。
+- 子代理授权、设计门禁确认、新增真实缺陷修复和删除确认均继承适用 `AGENTS.md`，不得用上游默认行为放宽。
 - 如果 skill 或 subagent 不可用，必须说明原因，并由主 agent 按同等职责执行，不得假装已调用。
 - direct-flow 不输出独立路由章节；skill / subagent 使用情况随阶段输出和验收输出记录。
 
@@ -116,6 +118,7 @@ direct-flow 第一轮和后续阶段输出使用 workflow prompt 的同构结构
 - 按 workflow 阶段执行。
 - 每个阶段结束输出阶段产物、风险和下一步。
 - writing-plans 未确认前不写代码。
+- 执行方式：inline / subagent-driven；子代理授权依据：已授权 / 未授权。
 - skill / subagent 不可用时说明原因，并由主 agent 替代。
 
 【当前 Workflow 阶段】
@@ -130,13 +133,14 @@ direct-flow 第一轮和后续阶段输出使用 workflow prompt 的同构结构
 - 风险和不确定点：
 - 下一步：
 
-请确认以上阶段产物。确认后我再进入下一阶段。
+仅在本阶段需要用户确认时列出具体待确认项及确认范围；其他阶段说明结果和下一步后继续。
 ```
 
 ## Skill / Subagent 执行规则
 
 - workflow 写到的 skill 必须真实读取并执行。
-- workflow 写到的 subagent 必须真实启动并交接；不可用时由主 agent 按同等职责替代。
+- workflow 中的角色先检查授权及执行方式。仅在已获授权且该阶段允许时真实启动并交接；inline 实现由主 agent 负责。
+- 未获授权、模式禁止与工具不可用分别说明，由主 agent 执行可替代职责；缺少强制独立审查等不可替代门禁时如实标为未满足。
 - 不得只列名称而不执行职责。
 - 不得假装某个 skill 或 subagent 已经调用。
 - 每个阶段结束都要说明实际使用了哪些 skill / subagent，以及不可用替代情况。
