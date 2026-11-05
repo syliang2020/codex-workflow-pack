@@ -1,6 +1,6 @@
 ---
 name: development-workflow-router
-description: Use when a user asks to route a backend, frontend, or fullstack feature/bugfix through superpowers, wants task classification before coding, needs a direct-flow or prompt-preview decision, asks for subagent coordination, or wants a copyable superpowers workflow prompt.
+description: Use when a user wants a Superpowers workflow for backend, frontend, or fullstack development, a copyable workflow prompt, read-only review, or routing of a Superpowers session diagnosis. Do not turn skill maintenance or session diagnosis into a business feature or bugfix.
 ---
 
 # Development Workflow Router
@@ -12,6 +12,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - 第一轮只读取和输出当前任务需要的信息。
 - 只读取当前任务类型对应的一个 workflow。
 - 进入对应模式时再读取对应 mode 文件。
+- 使用 Superpowers 开发链路前读取 [Superpowers 兼容约定](references/superpowers-compatibility.md)，处理执行方式、授权、文档和收尾边界。
 - 需要选择 skill / subagent 时再读取 `references/agent-skill-routing.md`。
 - 执行、审查、子代理回收和验收时再读取 `references/review-and-handoff.md`。
 
@@ -23,6 +24,7 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 - `prompt-preview` 必须读取对应 workflow 并生成 superpowers workflow prompt。
 - `SKILL.md`、`mode-direct-flow.md`、`mode-prompt-preview.md` 不得维护与 workflow 文件冲突的阶段顺序。
 - 如果 mode 文件和 workflow 文件冲突，以 workflow 文件为准。
+- 用户当前指令及适用的 `AGENTS.md` 优先于本 skill、workflow 和 Superpowers。workflow 的单一来源规则不改变授权和质量约束。
 - 每个 workflow 阶段都必须写明：使用的 skill / subagent、输入、输出、是否允许改代码、是否需要用户确认。
 
 ## 工作模式
@@ -48,9 +50,9 @@ description: Use when a user asks to route a backend, frontend, or fullstack fea
 6. 每个阶段结束后，输出阶段产物、风险和下一步。
 7. workflow 阶段标记需要用户确认时，必须等待用户确认。
 8. 到达 `superpowers:writing-plans` 时，必须输出计划并等待用户确认。
-9. 用户确认 writing-plans 后，才进入 `superpowers:executing-plans`。
-10. feature 类任务的 executing-plans 使用普通 TDD；bugfix 类任务的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
-11. 完成后进入审查、测试、验收。
+9. 用户确认落盘计划和执行方式后，进入所选执行器：`inline` 使用 `superpowers:executing-plans`，`subagent-driven` 使用 `superpowers:subagent-driven-development`。执行方式与子代理授权分别检查，不能因为有工具就默认获准派发。
+10. feature 执行阶段使用普通 TDD；bugfix 执行阶段先补失败回归测试证明 bug 存在，再最小修复，再验证通过。无法自动化时说明原因、最小复现、替代验证和风险；不得把 not-run 说成 passed。用户明确指定的测试例外按其指令执行并如实记录。
+11. 执行器的最终审查、清理和分支收尾由 router 后续阶段统筹，按兼容约定执行，不在实现阶段提前进入合并或发布选择。
 
 direct-flow 第一轮和后续阶段必须使用 workflow prompt 的同构结构，但不输出可复制提示词。
 
@@ -69,6 +71,7 @@ direct-flow 第一轮和后续阶段必须使用 workflow prompt 的同构结构
 - 按 workflow 阶段执行。
 - 每个阶段结束输出阶段产物、风险和下一步。
 - writing-plans 未确认前不写代码。
+- 已确认执行方式：inline / subagent-driven；子代理授权依据：已授权 / 未授权 / 本模式禁止。
 - skill / subagent 不可用时说明原因，并由主 agent 替代。
 
 【当前 Workflow 阶段】
@@ -84,7 +87,7 @@ direct-flow 第一轮和后续阶段必须使用 workflow prompt 的同构结构
 - 下一步：
 ...
 
-请确认以上阶段产物。确认后我再进入下一阶段。
+仅在本阶段确实需要确认时，列明具体待确认产物和确认范围；否则说明下一步并继续。
 ```
 
 ### prompt-preview
@@ -124,15 +127,24 @@ prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每
 
 只读审查模式。适用于用户要求“只审查、不修改代码”“先看问题”“review 当前改动”。
 
-- 不进入 `executing-plans`。
+- 不进入 `executing-plans` 或 `subagent-driven-development`。
 - 不启动实现型 subagent。
 - 不修改文件。
 - 可以按只读边界使用 `reviewer`、`api-designer`、`sql-pro`、`debugger`、`security-auditor` 或相关 skill。
+- 每次启动只读子代理仍须符合适用 `AGENTS.md` 的授权条件；review-only 或仅请求“检查”本身不构成子代理授权。未获授权时由主 agent 只读审查并注明执行者。
 - 输出必须区分历史问题、本次新增问题、本次修改扩大历史问题。
+
+### session-diagnosis
+
+用户要分析 Superpowers 会话中的重复工作、计划失效、技能未触发或成本异常时，路由到 `superpowers:diagnosing-superpowers`，不强行归入下方六类业务任务。
+
+- 当前会话仅诊断已指定会话，不进入开发执行器，不自动修复项目或修改配置。
+- 读取会话记录及启动分析子代理分别遵守现有授权边界；未获子代理授权时由主 agent 分析。
+- 导出诊断包、创建 issue 或发送外部内容须有明确指令，按诊断技能脱敏后处理。
 
 ## 任务分类
 
-将任务判断为以下 6 类之一：
+进入业务开发路由时，将任务判断为以下 6 类之一；review-only 和 session-diagnosis 不套用业务六分类：
 
 - `backend-feature`：只做后端功能开发。
 - `frontend-feature`：只做前端功能开发。
@@ -192,8 +204,10 @@ prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每
 - feature 默认先 `superpowers:brainstorming`；bugfix 默认先 bug-reproduce / `superpowers:systematic-debugging`，不默认先 `superpowers:brainstorming`。只有 bugfix 修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时，才在根因定位后补充 `superpowers:brainstorming`。
 - 不得跳过 `superpowers:writing-plans`。
 - writing-plans 未经用户确认前不得修改代码。
-- feature 类任务的 `superpowers:executing-plans` 阶段必须使用普通 TDD：先写失败测试，再实现功能，再测试通过。
-- bugfix 类任务的 `superpowers:executing-plans` 阶段必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
+- 先确认执行方式再选择执行器；实现型子代理仅用于已获授权的 `subagent-driven`，`inline` 由主 agent 按相应专业职责实现。
+- feature 执行阶段必须使用普通 TDD；bugfix 执行阶段必须先失败回归测试、再最小修复、再验证通过。无法自动化或用户明确要求例外时，如实记录验证范围和风险，不得把 not-run 说成 passed。
+- 编码后专业检查和所选执行器的最终通用审查合并安排，复用同一 diff 与证据；测试或联调后的新改动补充审查，验收前不得提前分支收尾。
+- 本次引入或扩大的真实缺陷必须修复，不因上游标注 Minor 或达到修复轮次上限而豁免；删除临时文件、台账或 worktree 仍须满足适用的删除确认规则。
 - 后端功能流程中 `backend-feature-design-review` 必须出现两次：编码前设计门禁、编码后代码审查。
 - `api-designer` 和 `sql-pro` 要作为明确的协同设计阶段，是否真实启动按任务影响范围和可用性判断。
 - 不得跳过审查、测试和验收。

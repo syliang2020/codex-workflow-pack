@@ -15,6 +15,7 @@
 - UI 设计
 - writing-plans
 - executing-plans
+- subagent-driven-development
 - 测试
 - 验收
 
@@ -26,6 +27,8 @@ prompt-preview 生成提示词时，必须读取当前任务类型对应的 `ref
 
 prompt-preview 只负责把 workflow 转换成可复制的 superpowers workflow prompt。
 
+生成内容包含 [Superpowers 兼容约定](superpowers-compatibility.md) 中与本任务有关的授权、执行分流和收尾边界；当前仍仅预览，不实际调用开发技能。
+
 不得要求下一轮 Codex 再调用 `development-workflow-router`。
 
 ## 当前模式限制
@@ -33,7 +36,7 @@ prompt-preview 只负责把 workflow 转换成可复制的 superpowers workflow 
 1. 不修改代码。
 2. 不执行命令。
 3. 不使用任何项目 MCP、数据库连接工具或迁移执行工具。
-4. 不进入 `executing-plans`。
+4. 不进入 `executing-plans` 或 `subagent-driven-development`。
 5. 不创建、不修改、不删除数据库对象。
 6. 不运行测试。
 7. 不启动子代理。
@@ -67,8 +70,12 @@ prompt-preview 默认生成中等长度的 superpowers workflow prompt，建议�
 - 每个阶段结束都要输出阶段产物、风险和下一步。
 - 每个 Workflow 阶段都必须在“使用”字段中写明本阶段使用的 skill / subagent。
 - writing-plans 未确认前不得写代码。
-- feature 的 executing-plans 必须遵循普通 TDD：先写失败测试，再实现功能，再测试通过。
-- bugfix 的 executing-plans 必须遵循 bugfix TDD：先补失败回归测试证明当前 bug 存在，再做最小修复，再运行测试验证通过。无法编写自动化测试时，必须说明原因、可重复的最小复现步骤、替代验证方式和风险；不得把 not-run 说成 passed。
+- 连同计划确认 execution_mode：inline 使用 executing-plans；获准委派实现时，subagent-driven 使用 subagent-driven-development。
+- 用户当前指令和适用 AGENTS.md 优先；子代理可用不等于已获授权。本提示词不自动授权实现代理、审查代理或 builder check。
+- 所选执行器遵守 feature TDD 或 bugfix TDD。无法自动化或用户明确要求例外时，如实记录替代验证和 not-run，不编造通过结果。
+- 实现后先完成专业检查、最终通用审查、联调及验证，再进入分支收尾；同范围审查证据复用。
+- 本次新增或扩大的真实缺陷不能因 Minor 标签而延后；清理台账、临时文件及 worktree 前遵守删除确认规则。
+- 仅在阶段确实需要确认时提出请求，不在执行任务之间重复询问是否继续。
 - 如果 skill 或 subagent 不可用，必须说明原因，并由主 agent 按同等职责执行，不得假装已调用。
 - 默认不要输出独立路由章节；只有用户明确要求完整 skills/subagents 使用计划时才额外输出。
 

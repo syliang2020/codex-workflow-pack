@@ -12,6 +12,7 @@
 - 需要把 `feature-doc-pack`、`backend-feature-design-review`、`writing-plans`、`executing-plans` 和 subagents 串起来。
 - 需要生成一份可复制给 Codex 的 superpowers workflow prompt。
 - 只想做代码审查，不希望 Codex 修改文件。
+- 需要分析 Superpowers 会话中的重复工作、技能未触发或成本异常。
 
 ## Workflow 单一来源
 
@@ -42,7 +43,9 @@ Codex 会先判断任务类型和置信度，然后读取对应 workflow，并�
 - feature 类任务进入 `superpowers:brainstorming`
 - bugfix 类任务进入 `bug-reproduce` / `superpowers:systematic-debugging`
 
-direct-flow 不生成完整提示词，也不只输出流程卡片。它和 prompt-preview 的区别只是是否输出可复制提示词：prompt-preview 只生成提示词，direct-flow 在当前会话里按同一套阶段执行。每个阶段结束后输出阶段产物并等待用户确认，`writing-plans` 确认前不写代码。
+direct-flow 不生成完整提示词，也不只输出流程卡片。它和 prompt-preview 的区别只是是否输出可复制提示词：prompt-preview 只生成提示词，direct-flow 在当前会话里按同一套阶段执行。每个阶段结束后输出阶段产物，仅在该阶段需要确认时等待；落盘计划和执行方式确认前不写代码。
+
+执行方式与子代理授权分别确定：`inline` 使用 `executing-plans`，由主 agent 实现；`subagent-driven` 使用 `subagent-driven-development`，由已获授权的专业子代理实现。用户已有选择时沿用；不因角色或工具可用而自动获准派发。项目 `AGENTS.md` 比全局规则更严格时，继续遵守项目限制。
 
 ### prompt-preview
 
@@ -60,9 +63,25 @@ prompt-preview 会读取对应 workflow，并把该 workflow 转换成可复制�
 
 适合“先看问题”“只 review，不修改代码”“帮我审查这次改动”这类请求。
 
+该模式不自动授予只读子代理权限；没有授权时由主 agent 只读审查，并如实注明执行者。
+
+### session-diagnosis
+
+将会话层面的重复执行、忽略计划、技能未触发或成本异常交给 `superpowers:diagnosing-superpowers`。不归入业务开发六分类，不自动修改项目或配置；分析子代理、导出诊断包和创建 issue 分别遵守授权边界。
+
+## 与 Superpowers 7.x 的交接
+
+具体约定见 [Superpowers 兼容约定](references/superpowers-compatibility.md)。router 维护执行分流、专业门禁和收尾边界，上游负责计划格式、任务循环和运行台账。
+
+- 实现结束后回到 router 的编码后审查阶段，执行一次最终通用审查，专业检查并入同一输入；已有等价证据复用。
+- 联调、测试后的新代码补审及回归，全部验收证据齐备后才进入分支收尾。
+- 本次新增或扩大的真实缺陷必须修复，不能因 Minor 标签延后；删除临时目录和台账前继续遵守 `AGENTS.md` 的确认要求。
+- 协作文档包继续先判断、先询问；设计、计划与协作文档优先复用已有输入，用户明确拒绝落盘时不绕过其选择。
+- 工具参数以当前 schema、角色配置和可用模型为准，不修改上游源码或本机默认配置。
+
 ## 任务分类
 
-这个 skill 会把任务分成 6 类：
+进入业务开发流程时分为以下 6 类；review-only 和 session-diagnosis 独立处理：
 
 - `backend-feature`
 - `frontend-feature`
@@ -88,7 +107,7 @@ superpowers:brainstorming
 -> api-designer / sql-pro
 -> backend-feature-design-review（编码前设计门禁）
 -> superpowers:writing-plans
--> superpowers:executing-plans with TDD
+-> 已确认执行器（inline / subagent-driven）with TDD
 -> backend-feature-design-review / reviewer（编码后代码审查）
 -> tests
 -> acceptance
@@ -101,7 +120,7 @@ superpowers:brainstorming
 -> api-designer / sql-pro / ui-designer
 -> backend-feature-design-review / ui-ux-pro-max
 -> superpowers:writing-plans
--> superpowers:executing-plans with TDD
+-> 已确认执行器（inline / subagent-driven）with TDD
 -> code review
 -> integration
 -> Playwright / browser test
@@ -115,13 +134,13 @@ bug-reproduce / superpowers:systematic-debugging
 -> root cause
 -> fix design
 -> superpowers:writing-plans
--> superpowers:executing-plans with bugfix TDD
+-> 已确认执行器（inline / subagent-driven）with bugfix TDD
 -> code review
 -> regression tests / Playwright
 -> acceptance
 ```
 
-bugfix 不默认先 brainstorming；bugfix 默认先 systematic-debugging，并在 executing-plans 阶段执行 bugfix TDD：先写失败回归测试证明 bug 存在，再最小修复，再验证测试通过。
+bugfix 不默认先 brainstorming；bugfix 默认先 systematic-debugging，在所选执行器中执行 bugfix TDD：先写失败回归测试证明 bug 存在，再最小修复，再验证测试通过。
 
 ## 依赖和配合
 
@@ -176,6 +195,7 @@ development-workflow-router/
     mode-direct-flow.md
     mode-prompt-preview.md
     review-and-handoff.md
+    superpowers-compatibility.md
     checklists/
     workflows/
 ```
