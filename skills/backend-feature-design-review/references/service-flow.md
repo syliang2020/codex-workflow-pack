@@ -1,42 +1,35 @@
-# Service Flow Review
+# 业务流程复用与事务
 
-Use this reference for save, update, delete, import, publish, audit, attachment, relation, transaction, and external-call flows.
+用于保存、编辑、删除、导入、关联替换、附件和外部调用审查。
 
-## Reuse Checklist
+## 先读已有流程
 
-Compare similar flows before coding:
+对照同类功能的入口、业务层、数据访问层和调用方，确认参数解析、权限、字典、查重、编号、实体赋值、关联写入及错误返回。参考实现风格，不机械复制旧缺陷。
 
-- Basic validation
-- Permission and identity resolution
-- Dictionary or reference-data lookup
-- Business rule validation
-- Title or derived-field generation
-- Entity field assignment
-- Relation replacement
-- Attachment binding
-- Log or audit writing
-- External service calls
+新增、编辑、导入等入口应共用确实相同的规则和持久化语义，但保留各入口必要的业务差异，例如逐行结果或整体事务，不能为复用改变产品要求。
 
-If repeated logic exceeds a small block, propose a shared method, context object, command object, Converter, Assembler, or domain builder.
+## 选择最简单的复用方式
 
-## Suggested Abstractions
+- 先判断是否存在稳定重复流程，再决定是否需要抽取。
+- 同一业务的一小段公共步骤优先用含义明确的方法；已有 DTO/VO 能表达语义时不额外增加包装。
+- 只有多个步骤共享同一份明确资料、且显式参数反而难以阅读时，才考虑上下文对象。
+- 不默认要求 `prepareContext`、Builder、Converter、策略框架或额外 Service；“无需新增抽象”也是有效结论。
+- 重用稳定资料减少重复读取；决定写入的角色状态、权限、存在性等可变结果，需说明事务内如何保持有效。
+- 清理本次流程替换后不再使用的旧方法和适配，先检查调用方及兼容影响，遵守删除授权要求。
 
-- Context object: holds request, current user, identity, dictionary map, old entity, derived values, and flags.
-- `prepareContext`: validates input, loads dependencies, and calculates derived values.
-- `applyEntityFields`: assigns shared persistent fields for create and update.
-- `replaceRelations`: deletes/rebuilds relation data consistently.
-- `saveAttachments`: binds attachments after the main object identity is known.
+## 事务与副作用
 
-## Transaction and Consistency
+- 事务边界放在有业务语义的 Service 方法上，明确哪些数据库写入必须共同成功或回滚。
+- 关联删除、重建、权限调整等步骤不能各自提交导致半成品；同时检查代理调用是否真正进入事务。
+- 文件、消息、缓存、Feign/HTTP 等操作不自动参与数据库回滚，必须说明成功/失败状态如何处理。
+- 幂等、重试、补偿按实际风险和用户确认的范围设计，不为假设问题扩充本轮需求；已确认延期的风险单列。
+- 检查业务失败返回值，不能仅因没有抛异常就报告成功。
+- 需要锁时评估保护对象、范围、持有时间及外部调用影响；评审性能不能仅看查询次数。
 
-- Identify which database writes must succeed or fail together.
-- Mark external calls that cannot join the local transaction.
-- For external calls, consider idempotency, retry, compensation, or explicit failure handling.
-- Avoid saving local state that says an external operation succeeded before it actually did.
+## 需要定位的错误模式
 
-## Red Flags
-
-- Save and update duplicate a long sequence with tiny differences.
-- Relation delete and relation insert are not in a clear transaction.
-- Attachments are deleted before validation has fully succeeded.
-- Feign or client calls are treated as if they are part of the database transaction.
+- 同一规则只在某个入口生效，或相同业务返回不同错误语义。
+- 为省查询复用已经失效的写入状态，造成授权或关系判断错误。
+- 不同业务被塞入参数众多或布尔开关控制的通用方法，读代码无法直接判断行为。
+- 保存、编辑各有一套长流程，修复只改到其中一处。
+- 远程调用被误当作可随数据库回滚，或失败结果未检查却继续返回成功。

@@ -1,86 +1,59 @@
 ---
 name: backend-feature-design-review
-description: Use when backend work involves database tables or fields, API contracts, validation, save/update/delete flows, attachments, transactions, external calls, data access via DAO/Repository/MyBatis Mapper/Mapper.xml/JdbcTemplate, naming consistency, or backend code review before implementation.
+description: Use when backend work involves data models, API contracts, validation, persistence queries, pagination, save/update/delete or import flows, transactions, external calls, or backend design and code review.
 ---
 
-# Backend Feature Design Review
+# 后端功能设计与代码审查
 
-Use this skill before implementing backend changes where design quality affects maintainability.
+在后端编码前确认设计，在代码审查时核对实际调用链。目标是业务正确、人工可读、职责清晰且便于维护。
 
-## Core Rule
+## 模式与授权边界
 
-Do not implement first. Review the design, identify risks, ask for confirmation, and only code after the user agrees.
+- **设计门禁**：审查方案、风险和待确认问题，用户确认后再编码。已有明确确认的方案继续执行，不对相同范围重复请求确认；新增业务取舍再澄清。
+- **只读审查**：只报告问题，不修改文件。结论按严重程度排序，区分已存在历史问题、本次新增问题、本次修改扩大了历史问题。
+- 用户明确的需求、项目 `AGENTS.md`、技术栈和授权范围优先。参考同类功能组织实现，但历史问题不能作为新增同类问题的理由。
+- 本技能不把技能维护、规范整理或流程诊断转成业务功能开发，也不自动授权子代理、依赖安装、文件删除或公共 API 删除。
 
-If the user asks for review or summary only, produce the review without changing files.
+## 默认审查范围
 
-## Short Prompt Expansion
+用户只说“做后端设计审查”“检查这段后端代码”时，按实际改动检查：
 
-When the user gives a short instruction such as "use backend-feature-design-review", "backend design gate", "review this backend code", "avoid the previous backend issues", or "check before coding", treat it as a request to run the full backend design gate. Do not require the user to restate the checklist.
+| 维度 | 核对内容 |
+|---|---|
+| 数据模型 | 字段含义单一；请求、响应、持久化职责分离；约束、索引及历史数据兼容有依据 |
+| 可读性 | 命名表达业务含义；主流程直观；没有无意义的小方法、通用包装或废弃实现 |
+| 分层 | 入口调用业务层，业务层编排事务和规则，数据访问层只查询或持久化 |
+| 数据访问 | 关联读取、筛选和分页在数据库完成；没有循环查库、重复读取或内存补齐展示字段 |
+| 校验 | 每条限制对应已确认需求或项目规则；不同入口语义及错误提示一致 |
+| 事务与外部调用 | 数据库写入边界明确；外部操作不能被当作可随本地事务回滚 |
+| 公共能力与清理 | 优先使用已有组件和服务；清理本次引入的无效代码，检查接口兼容性 |
+| 注释与组织 | 遵守项目语言规范；Java 使用中文多行 Javadoc，常量、属性、依赖与方法位置规整 |
+| 验证 | 行为测试覆盖正常、异常和边界；交付区分已验证、未验证和明确延期范围 |
 
-For complex backend feature work, expand the short request into these default checks:
+## 参考文件：按需读取
 
-- Data model: each field has one meaning; separate ID, name snapshot, display path, custom input, derived value, and search token.
-- Naming: table, Entity/DO/PO, Service/Manager/DomainService, Controller/Api/Endpoint, DTO/Request/VO, DAO/Repository/MyBatis Mapper/Mapper.xml/JdbcTemplate helper, Converter/Assembler, Validator/Rules, Feign/Client/Adapter names express the same domain clearly.
-- Blocking layering: Controller/Api must depend on Service only; Listener/Consumer/Job/Scheduler should use Service for business queries unless the project has an explicit established same-kind pattern; data access results must get Service-level business meaning before reaching entry layers.
-- Flow reuse: compare save, update, delete, import, publish, relation replacement, and attachment binding before coding; flag duplicated orchestration and propose shared context/build/apply/replace methods.
-- Validation layering: DTO/Request handles basic shape; Validator/Rules/Policy handles reusable business rules; Service orchestrates; data access does not decide business validity.
-- Consistency: identify local transaction boundaries and any external call, attachment service, message, cache, or file operation that cannot roll back with the database.
-- Compatibility: check historical data, migration, backfill, rollback, indexes, old frontend payloads, and read/edit/display/export/delete behavior.
-- Tests: require behavior tests for critical flows; source-string assertions are not enough for business behavior.
+- 表、字段、索引、字典映射、迁移及旧数据：读取 [数据模型](references/data-model.md)。
+- 命名、可读性、注释、Controller / Service / DAO 依赖：读取 [命名与分层](references/naming-and-layering.md)。
+- SQL、Mapper XML、联表、N+1、分页和数据读取性能：读取 [数据访问与分页](references/data-access.md)。
+- 保存、编辑、删除、导入、关联替换、复用和事务：读取 [业务流程](references/service-flow.md)。
+- 请求响应、校验依据、错误提示和兼容性：读取 [接口与校验](references/api-and-validation.md)。
+- 测试计划、验证证据和交付结论：读取 [测试与交付](references/test-and-delivery.md)。
 
-## Blocking Architecture Findings
+## 阻断项与报告方式
 
-Treat these as blocking defects in review-only or implementation-gate mode:
+下列问题出现在本次新增或扩大的代码中时，按阻断缺陷报告：
 
-- Controller/Api directly depends on DAO, Repository, MyBatis Mapper, Mapper.xml helper, EntityManager, JdbcTemplate, or equivalent data access component.
-- Listener, Consumer, Job, or Scheduler directly performs business queries through data access instead of Service, unless the project already has a clear same-kind pattern.
-- Controller/Api passes empty strings, raw `Map`, raw `Object`, or unclear business parameters through to Service.
-- Business validation, import validation, template validation, transaction decisions, or dynamic update decisions live outside Service or a Service-called Validator/Rules/Policy layer.
-- DAO/Mapper query results are returned to Controller/Api, Listener, Consumer, Job, or Scheduler without Service-level business naming or transformation.
+- Controller 直接访问 DAO、Repository、Mapper、JdbcTemplate 等数据访问对象，或承担复杂业务及事务。
+- Service 直接注入其他业务领域的 DAO，绕过该领域 Service 编排规则；关联展示的所属 DAO 联表查询不属于此类违规。
+- Listener、Consumer、Job 等入口直接做业务数据库访问，或 DAO 反向调用业务层、入口层。
+- Entity 或未组织业务语义的数据库结果直接充当接口响应，请求对象直接充当持久化对象。
+- 数据规模增长时循环逐条读取数据库，或分页后才在内存筛选、手写内存分页、擅自增加分页上限。
+- 无业务依据新增校验、默认过滤或字段语义；用“历史代码也是这样”解释本次新增问题。
 
-For each blocking defect, report file path, exact symbol or dependency, why it violates layering, expected dependency direction, and suggested fix. Do not soften findings. Do not call a violation acceptable unless you verified it is existing legacy code and the current diff did not introduce or expand it.
+每项写明：严重程度、文件与行号、具体符号或调用链、触发条件、实际影响、建议修复及缺失测试。不能只根据命名、猜测或个人偏好认定缺陷；证据不足时标明待验证。已确认延期项单列，不冒充本次新发现。
 
-## Workflow
+## 输出与执行
 
-1. Identify the feature boundary and affected modules.
-2. Decide whether this is implementation-gate mode or review-only mode.
-3. Decide which design areas are involved.
-4. Load only the relevant reference files below.
-5. Produce a concise design review with risks, recommendations, tests, and open questions.
-6. Stop and wait for user confirmation before implementation.
+设计门禁输出：建议结论、功能边界、关键风险、数据来源与各层方法、校验及权限位置、事务边界、必要复用、测试和待确认问题。没有必要的新抽象时明确写“无需新增抽象”。等待用户确认后实现。
 
-## Reference Loading
-
-- Tables, fields, snapshots, derived values, migrations, backfill, rollback, indexes, or historical data: read `references/data-model.md`.
-- Naming, layering, DAO, Repository, MyBatis Mapper, Mapper.xml, JdbcTemplate, DTO, VO, Entity, Converter, Assembler, Validator, or Rules: read `references/naming-and-layering.md`.
-- Save, update, delete, import, publish, audit, attachments, logs, transactions, external calls, retry, idempotency, or compensation: read `references/service-flow.md`.
-- API request/response fields, validation, error codes, error messages, enums, frontend compatibility, or contract changes: read `references/api-and-validation.md`.
-- Test planning, delivery summary, quality self-check, or completion criteria: read `references/test-and-delivery.md`.
-
-## Required Output
-
-Return:
-
-- Recommendation: can develop / needs confirmation / should redesign first
-- Feature boundary
-- Key risks
-- Design decisions
-- Required abstractions
-- Tests to add
-- Questions for user
-
-Wait for confirmation before implementation.
-
-For review-only requests, lead with findings ordered by severity, include file/line references when code is available, and do not modify files.
-Separate existing legacy issues, issues introduced by this change, and cases where this change expands a legacy issue. New or expanded issues must be fixed, not labeled as legacy.
-
-## Stop Conditions
-
-Recommend confirmation or redesign before coding when:
-
-- One field carries multiple meanings.
-- Naming hides the real domain role.
-- Service methods duplicate large save/update/delete flows.
-- Validation rules are scattered across layers.
-- Transaction or external-call consistency is unclear.
-- Historical data, migration, or rollback is unaddressed.
+只读审查先给可行动问题及证据，再说明验证结果和覆盖限制；没有发现时明确限定审查范围，不声称系统绝无问题。

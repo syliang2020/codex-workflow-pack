@@ -1,39 +1,33 @@
-# Test and Delivery Review
+# 测试与交付审查
 
-Use this reference before implementing tests and before claiming completion.
+用于制定验证范围及检查交付结论。按实际改动选择验证，不把后台单点修改扩成无关的全系统测试。
 
-## Test Coverage
+## 行为测试
 
-Cover the highest-risk paths first:
+- 新增逻辑补充正常、异常、边界及受影响的上下游行为测试。
+- 保存后查询/编辑回显、字段清空、重复记录、权限拒绝、删除限制、历史数据按改动风险覆盖。
+- 关联查询检查字段映射、过滤时机、结果是否重复及分页总数；能执行行为测试时不只断言源码文本。
+- 查询优化检查调用次数和数据规模；复用资料还应覆盖会变化的状态，不能只证明少查一次。
+- 错误处理检查异常后是否继续写入、是否返回错误成功，以及不同入口的错误语义是否一致。
+- 不以 mock 测试通过代替真实数据库、接口或页面已经验证；明确替身和环境假设。
 
-- Normal create/save flow.
-- Normal edit/update flow.
-- Detail or edit echo after save/update.
-- Missing required parameters.
-- Invalid enum, dictionary, mode, or status.
-- Permission failure and ownership failure.
-- Delete, publish, import, attachment, or audit restrictions.
-- Historical data compatibility.
-- Migration or backfill assumptions.
-- Boundary values such as empty lists, duplicate entries, long text, and mixed modes.
+## 页面与动态视觉
 
-## Design Self-Check
+当任务涉及页面验收时，通过真实浏览器操作验证，接口响应和数据库只读检查作为辅助证据。
 
-Before completion, report:
+- 新增、编辑、筛选、分页、导入等操作既检查结果，也检查加载、失败、空状态和交互反馈。
+- 下载成功或最终截图正确不能证明交互过程没有抖动、闪动、遮挡或布局位移。
+- 对瞬时问题记录连续截图、视频、关键元素位置、滚动条、视窗和焦点时序；区分页面 DOM 与浏览器标签栏等外壳变化。
+- 未捕获现象时记录条件、采样限制和假设，不根据可能相关的代码直接宣称根因。
+- 只在授权范围使用测试数据；记录基线、清理自身数据并核对恢复结果，不能修改无关真实数据来补覆盖率。
 
-- Field semantics: whether any field carries multiple meanings.
-- Naming consistency: whether each layer uses clear domain language.
-- Responsibility boundaries: where validation, orchestration, persistence, and conversion live.
-- Reuse: whether save/update/delete share common logic safely.
-- Transaction boundary: what succeeds/fails together.
-- External calls: retry, compensation, and idempotency risks.
-- Historical compatibility: migration, backfill, rollback, and old-data reads.
-- Test results: commands run and what passed.
-- Residual risk: what remains untested or intentionally deferred.
+## 交付结论
 
-## Red Flags
+先报告修改文件和原因、实际执行的验证命令及结果，再分列：
 
-- Completion summary only says "implemented" without test evidence.
-- Tests only check source text instead of behavior when behavior tests are feasible.
-- No test covers update after create.
-- No test covers historical or old-shape data after a schema change.
+1. **已验证**：具体场景、使用的环境、真实或模拟证据。
+2. **未验证**：缺少的环境、数据、权限或未覆盖路径。
+3. **已知风险**：已证实问题及影响，区分本次新增、扩大历史和既有历史。
+4. **明确延期或排除**：用户已确认的范围，不重新包装成本轮新缺陷。
+
+只有证据覆盖已声明范围时才能说通过；不能用“专项测试全绿”概括未测的真实接口、页面或并发行为。没有发现问题时仍需限定审查和验证范围。

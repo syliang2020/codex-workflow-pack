@@ -1,33 +1,32 @@
-# API and Validation Review
+# 接口契约与校验
 
-Use this reference when backend work changes request fields, response fields, validation rules, error messages, enums, or frontend compatibility.
+用于请求响应、错误提示、校验依据和兼容性审查。
 
-## API Contract
+## 契约检查
 
-- List request fields with required status, type, meaning, source, and compatibility notes.
-- List response fields with meaning, nullability, and display purpose.
-- List enums, magic IDs, status values, and dictionary dependencies.
-- State whether the frontend must change together.
-- Do not hide field semantics behind vague references such as "see VO".
+- 说明请求字段的类型、必填性、业务含义、数据来源和响应字段的含义、可空性、展示用途。
+- 请求 DTO、响应 VO 和持久化 Entity 按职责分离；内部查询结果应先由业务层组织语义。
+- 字段命名、返回结构、错误码遵循项目既有风格；项目使用 Swagger/OpenAPI 或类型生成时，同步相应说明和产物。
+- 修改或删除字段、接口前检查前端及其他调用方；未经确认不删除公共 API、不新增依赖。
+- 复用已有公共接口和组件应先核对是否满足需求，不擅自改变公共行为影响无关功能。
 
-## Validation Layering
+## 校验依据与位置
 
-- DTO/Request/Form/Command: required fields, length, format, enum range, simple collection size.
-- Controller/Api: no complex business rules; keep request entry and response handoff simple.
-- Validator/Rules/Policy/Checker: reusable business validation, cross-field checks, mode-specific rules, permission predicates.
-- Service: orchestrates validation, persistence, transactions, and external calls.
-- Data access: does not decide business validity.
+- 每条新增限制都要能对应已确认需求或项目规则；不能用“更安全”“顺手完善”等理由自行增加业务门槛。
+- 基础形状、必填、长度、格式等由请求对象或入口的基础校验处理；业务规则和权限由 Service 或其调用的校验组件组织。
+- 特定格式入口按项目及用户约定负责解析和提示；不要为统一结构额外引入通用校验框架，也不要把业务数据库访问下沉到入口或 DAO。
+- 同一业务规则在新增、编辑、导入及其他入口语义一致；对已校验资料合理复用，避免反复查库。
+- 不擅自要求额外的前置数据、关联身份、特殊字符比较、默认过滤或更严格的唯一性规则；业务不明确时先澄清。
+- 分页参数遵循既定契约，不追加未经确认的上限或静默截断。SQL 规则见 [数据访问与分页](data-access.md)。
 
-## Errors
+## 错误处理
 
-- Keep error messages and error codes consistent across save, update, import, and batch flows.
-- Check whether frontend logic depends on exact message text.
-- Prefer centralized constants or enums for stable business error codes.
-- Avoid scattering temporary Chinese strings or magic values across service methods.
+- 提示与已确认需求、原型和既有同类操作一致；同一失败在不同入口不要换成不同含义。
+- 区分可修正的业务错误和系统异常，不能把已识别的具体错误吞掉后只提示重试。
+- 需要汇总多项错误时，保证后续数据库或解析异常不会遮蔽已发现的问题。
+- 根据接口契约返回成功、部分成功或失败，不能把 HTTP 200 等同于业务成功。
+- 日志和响应不得暴露密码、令牌等敏感信息；调试输出与异常栈也应检查。
 
-## Red Flags
+## 审查输出
 
-- The same rule is checked in one save path but missing from update.
-- One validation lives in DTO annotations and a related rule lives as ad hoc service code.
-- A new API field changes meaning without contract notes.
-- Error text differs for the same business failure.
+给出规则依据、入口及 Service/DAO 方法、权限位置、数据来源、调用方兼容影响和至少一条正常/异常验证路径。没有证据支持的新规则只列为待确认问题，不直接实施。

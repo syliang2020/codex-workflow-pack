@@ -1,81 +1,50 @@
-# Naming and Layering Review
+# 命名、可读性与分层
 
-Use this reference when checking domain naming, framework-specific layer names, or responsibility boundaries.
+用于检查类、方法、字段的业务含义，代码组织及依赖方向。
 
-## Naming Matrix
+## 职责与命名
 
-Review the project's actual roles, not one fixed stack.
-
-| Role | Common Names | Check |
+| 职责 | 常见名称 | 要求 |
 |---|---|---|
-| Database model | table, column | Does the name describe the stored business object? |
-| Persistent object | Entity, DO, PO, Model | Does it match table semantics without leaking API concerns? |
-| Data access | DAO, Repository, MyBatis Mapper, Mapper.xml, JdbcTemplate helper | Does it only query and persist data? |
-| Service layer | Service, ServiceImpl, Manager, DomainService | Does it express business capability and orchestration? |
-| API entry | Controller, Api, Resource, Endpoint | Does it expose request/response behavior only? |
-| Request object | DTO, Request, Form, Command, SaveVO | Does it represent input instead of persistence state? |
-| Response object | VO, Response, View | Does it represent output and display needs? |
-| Query object | Query, Criteria, PageQuery | Is querying separated from save/update input? |
-| Conversion layer | Converter, Assembler, Builder, MapStruct Mapper | Is object transformation centralized? |
-| Rule layer | Validator, Rules, Policy, Checker | Are reusable decisions outside ServiceImpl? |
-| External call | Feign, Client, Gateway, Adapter | Are cross-service details isolated? |
-| Constants | Enum, Constants | Are magic values avoided in service code? |
+| 请求 | DTO、Request、Command、Query | 表达输入及查询条件，不混作持久化实体 |
+| 响应 | VO、Response、ViewModel | 表达接口展示语义，不直接透传数据库行 |
+| 持久化 | Entity、DO、PO、Model | 对应存储模型，一个字段只有一种业务含义 |
+| 入口 | Controller、Handler、Endpoint、Listener | 接收数据、完成入口格式解析、调用业务层、返回结果 |
+| 业务 | Service、UseCase、ApplicationService | 业务规则、权限、流程编排和事务 |
+| 数据访问 | DAO、Repository、MyBatis Mapper、Client | 查询、持久化或外部资源访问，不编排业务 |
 
-## Mapper Distinction
+遵循项目已有明确架构命名，不把某一套类名强加到不同技术栈。MyBatis Mapper 是数据访问组件；MapStruct Mapper 或 Converter 是对象转换组件，名称应能区分。
 
-- MyBatis Mapper belongs to the data access layer.
-- MapStruct Mapper, Converter, Assembler, and Builder belong to object conversion.
-- If both exist, use names that make their roles obvious.
+## 依赖边界
 
-## Responsibility Boundaries
+- 入口层只依赖业务层；Controller 不直接访问 DAO、Repository、Mapper、JdbcTemplate，也不控制事务。
+- Service 只直接依赖本领域的数据访问对象；其他领域的业务资料和操作通过对应 Service 收口，不能直接注入其他领域 DAO。
+- 仅为当前接口读取关联展示字段，可由所属 DAO 联表完成；不要为了表面分层拆成多次查询再拼装结果。详见 [数据访问与分页](data-access.md)。
+- DAO 不调用 Service 或 Controller；SQL 可以执行已确定的筛选约束，但不能代替业务层决定授权策略或状态流转。
+- Listener、Consumer、Job、Scheduler 的业务查询和写入经过 Service，不能把事务分散到入口。
+- 参数应能表达业务含义，不用含义不明的空字符串、原始 Map/Object 隐藏接口契约。
 
-- Controller/Api: receive request, call service, return response.
-- DTO/Request/Form/Command: basic shape, required fields, length, format, enum range.
-- Validator/Rules/Policy/Checker: reusable business validation and decision rules.
-- Service/DomainService/Manager: business orchestration, transaction boundary, external call coordination.
-- Data access layer: persistence queries and writes only.
-- Converter/Assembler/Builder: repeated field assembly and object transformation.
+## 人工可读与复用
 
-## Blocking Layering Rules
+- 使用业务名称，关键判断和执行顺序能在主流程中直接读懂。
+- 优先参考项目已有同类功能，保持返回结构、异常处理及调用方式一致；发现旧模式有问题时说明差异，不复制问题。
+- 只有稳定重复流程或清晰职责边界才需要抽取方法。不要仅因代码超过几行就引入上下文对象、构建器、策略层或大量小方法。
+- 抽取后应能更容易理解调用方；不能为复用把多种无关行为塞进一个参数众多的方法，或增加含义不明的布尔开关。
+- 清理本次引入的死代码、重复流程和旧适配，检查调用方后按授权删除；删除文件和公共 API 的确认要求仍然适用。
+- 公共组件和跨模块服务的变更需有本任务依据、影响范围和回归验证，不顺手重构无关代码。
 
-Stop and report a blocking finding when any of these appear in current work:
+## 注释与成员顺序
 
-- Controller/Api directly injects or calls DAO, Repository, MyBatis Mapper, Mapper.xml helper, EntityManager, JdbcTemplate, or equivalent data access component.
-- Listener, Consumer, Job, or Scheduler directly injects or calls data access for business queries instead of Service. Allow this only after verifying the project already has a clear same-kind pattern and the current change does not expand the pattern.
-- Controller/Api forwards empty strings, raw `Map`, raw `Object`, or unclear business parameters to Service instead of using a named request/query/command object or explicit parameters.
-- Business validation, import validation, template validation, transaction decisions, or dynamic update decisions happen in Controller, Listener, Job, Consumer, DAO/Mapper, SQL, or utility code instead of Service or a Service-called Validator/Rules/Policy layer.
-- DAO/Mapper result objects are returned directly to Controller/Api, Listener, Consumer, Job, or Scheduler without Service-level naming, transformation, or business meaning.
+Java 后端类、方法、字段和常量使用中文多行 Javadoc，说明业务含义而不是重复名称；复杂分支补充原因。其他语言遵循对应项目的文档注释格式。
 
-Expected dependency direction:
+```java
+/**
+ * 根据筛选条件查询有权限的数据。
+ */
+```
 
-`Controller/Api/Listener/Consumer/Job/Scheduler -> Service/DomainService/Manager -> Validator/Rules/Policy and Data Access -> Database`
+常量、成员属性、依赖注入集中放在类前部，方法放在属性之后；不能在一组依赖属性中间插入重写方法。
 
-`Converter/Assembler/Builder` can be used by Service or entry layers for object transformation, but it must not own business validation or data access decisions.
+## 审查分类
 
-## Finding Format
-
-For every blocking layering defect, include:
-
-1. File path.
-2. Exact symbol, dependency, injected field, method call, or parameter.
-3. Why it violates the layer boundary.
-4. Expected dependency direction.
-5. Suggested fix.
-
-Do not soften findings. Do not say a violation is acceptable unless you verified it is pre-existing legacy code and the current diff neither introduced nor expanded it.
-
-When reviewing existing code, classify each finding as:
-
-- Existing legacy issue.
-- Introduced by current change.
-- Current change expands an existing issue.
-
-Introduced or expanded issues must be fixed before implementation or approval.
-
-## Red Flags
-
-- Service is named after one concept while the table/entity uses another concept with no explanation.
-- Request objects are reused as persistence entities.
-- Controller contains business branching.
-- Data access methods encode business rules that should be visible at service or rule level.
-- Review excuses a new layering violation because similar old code already exists.
+分清已存在历史问题、本次新增问题、本次修改扩大了历史问题。后两类必须修复，不能降格为“历史遗留”。如兼容旧模式确实不可避免，先说明原因和影响并等待用户确认。
