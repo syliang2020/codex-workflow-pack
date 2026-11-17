@@ -204,7 +204,7 @@ prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
 
 上述基础路由按职责表补充条件角色：feature 澄清或业务取舍使用 `product-manager`；后端 / 全栈架构取舍使用 `microservices-architect`；数据库性能问题使用 `database-optimizer`；安全专项使用 `security-auditor`；前端 / 全栈浏览器复现和诊断使用 `browser-debugger`，用户流程验收使用 `ui-ux-tester`。具体绑定位置见各 workflow，不在本文件重排阶段。
 
-测试策划和执行统一使用 [system-testing](../../system-testing/SKILL.md)：按风险使用 `qa-expert`，按已授权测试实现范围使用 `test-automator`；页面测试分别报告功能、静态视觉与交互过程。UI 规范及体验判断使用 `ui-ux-pro-max`，以项目标准和同类组件为准，不由通用建议自动引入重设计。独立测试不要求先进入 router。
+功能测试依据需求、契约和已确认预期策划执行，按风险使用 `qa-expert`，按已授权测试实现范围使用 `test-automator`。页面视觉检查使用 [ui-visual-testing](../../ui-visual-testing/SKILL.md)，单独报告静态视觉和交互过程的视觉稳定性，不代替功能验收。UI 规范及体验判断使用 `ui-ux-pro-max`，以项目标准和同类组件为准，不由通用建议自动引入重设计。独立测试不要求先进入 router。
 
 ## 子代理任务模板
 

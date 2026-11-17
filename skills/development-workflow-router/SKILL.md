@@ -15,7 +15,7 @@ description: Use when a user wants a Superpowers workflow for backend, frontend,
 - 使用 Superpowers 开发链路前读取 [Superpowers 兼容约定](references/superpowers-compatibility.md)，处理执行方式、授权、文档和收尾边界。
 - 需要选择 skill / subagent、生成阶段分工或派发任务时，读取 [角色职责与路由](references/agent-skill-routing.md)，按其中的完整职责表选择，不要求用户逐个指定角色。
 - 执行、审查、子代理回收和验收时再读取 `references/review-and-handoff.md`。
-- 策划或执行验收测试时读取 [system-testing](../system-testing/SKILL.md)，复用其功能、静态视觉和交互过程规范；测试阶段不能仅以功能通过宣布页面验收通过。
+- 涉及页面布局、样式或交互过程的视觉检查时读取 [ui-visual-testing](../ui-visual-testing/SKILL.md)。功能测试仍依据需求、契约与项目测试计划独立执行；纯后端不调用视觉 skill。
 
 ## Workflow 单一来源规则
 
@@ -146,7 +146,7 @@ prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每
 
 ## 任务分类
 
-用户明确要求执行已有系统或菜单测试时，路由到 [system-testing](../system-testing/SKILL.md)，复用已确认范围，不强制进入开发执行器；只要求预览或只读分析时继续遵守相应模式边界。
+用户明确要求检查已有页面的样式、布局或动态视觉时，路由到 [ui-visual-testing](../ui-visual-testing/SKILL.md)，不强制进入开发执行器。功能测试先核对需求与已确认预期，不交给视觉 skill；只说“测试菜单”而范围不清时先澄清要测功能、视觉或两者。只要求预览或只读分析时继续遵守模式边界。
 
 进入业务开发路由时，将任务判断为以下 6 类之一；review-only、session-diagnosis 和独立测试请求不套用业务六分类：
 

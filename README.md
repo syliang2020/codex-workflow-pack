@@ -12,7 +12,7 @@ codex-workflow-pack/
     feature-doc-pack/
     development-workflow-router/
     backend-feature-design-review/
-    system-testing/
+    ui-visual-testing/
   internal/
     skills/
       playwright-local-runtime/
@@ -23,7 +23,7 @@ codex-workflow-pack/
 - `feature-doc-pack`：生成和维护 feature 级协作文档，包括计划、业务规则、接口契约、任务看板、测试用例和数据库设计草案。详细说明见 [skills/feature-doc-pack/README.md](skills/feature-doc-pack/README.md)。
 - `development-workflow-router`：根据后端、前端、全栈 feature/bugfix 判断任务类型，选择 direct-flow、prompt-preview 或 review-only，并路由到合适的 skills/subagents。详细说明见 [skills/development-workflow-router/README.md](skills/development-workflow-router/README.md)。
 - `backend-feature-design-review`：后端功能设计和代码审查门禁，重点检查字段语义、命名一致性、分层、校验、事务、save/update 复用、历史数据兼容和测试。详细说明见 [skills/backend-feature-design-review/README.md](skills/backend-feature-design-review/README.md)。
-- `system-testing`：独立执行或接入 router 的功能、菜单和系统验收，分别验证功能正确性、静态视觉与交互过程，记录证据、缺陷和复测。使用说明见 [skills/system-testing/SKILL.md](skills/system-testing/SKILL.md)。
+- `ui-visual-testing`：独立执行或接入 router 的页面视觉检查，覆盖布局、样式和交互过程的视觉稳定性；不承担业务功能验收。使用说明见 [skills/ui-visual-testing/SKILL.md](skills/ui-visual-testing/SKILL.md)。
 
 ### Internal skill
 
@@ -49,7 +49,7 @@ Windows 示例：
 Copy-Item -Recurse -Force .\skills\feature-doc-pack "$env:USERPROFILE\.codex\skills\feature-doc-pack"
 Copy-Item -Recurse -Force .\skills\development-workflow-router "$env:USERPROFILE\.codex\skills\development-workflow-router"
 Copy-Item -Recurse -Force .\skills\backend-feature-design-review "$env:USERPROFILE\.codex\skills\backend-feature-design-review"
-Copy-Item -Recurse -Force .\skills\system-testing "$env:USERPROFILE\.codex\skills\system-testing"
+Copy-Item -Recurse -Force .\skills\ui-visual-testing "$env:USERPROFILE\.codex\skills\ui-visual-testing"
 ```
 
 如果你确实使用同类 Windows Playwright 环境，可以按需复制 internal skill，并在安装后替换全部路径占位符：
@@ -64,7 +64,7 @@ macOS / Linux 示例：
 cp -R skills/feature-doc-pack ~/.codex/skills/feature-doc-pack
 cp -R skills/development-workflow-router ~/.codex/skills/development-workflow-router
 cp -R skills/backend-feature-design-review ~/.codex/skills/backend-feature-design-review
-cp -R skills/system-testing ~/.codex/skills/system-testing
+cp -R skills/ui-visual-testing ~/.codex/skills/ui-visual-testing
 ```
 
 ## 推荐使用顺序
@@ -98,8 +98,8 @@ development-workflow-router
 独立测试已有页面：
 
 ```text
-使用 system-testing 测试指定菜单，以项目现有组件和同类页面为视觉依据。
-分别报告功能、静态视觉和交互过程的结论、证据与缺陷；本次只测试，不修改业务代码。
+使用 ui-visual-testing 测试指定菜单，以项目现有组件和同类页面为视觉依据。
+分别报告静态视觉和交互过程的视觉结论、参照、证据与缺陷；不做业务功能验收，不修改业务代码。
 ```
 
 需要测试策划或自动化实现时，按需配置 `qa-expert` 和 `test-automator`；仍从上方外部子代理来源安装，本仓库不复制其配置。角色不可用时由主 agent 承担职责并说明实际执行者。

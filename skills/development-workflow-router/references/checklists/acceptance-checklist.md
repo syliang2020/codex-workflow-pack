@@ -21,7 +21,7 @@
 15. 后续建议。
 16. 已确认执行方式、审查执行者及执行裁决。
 17. 未解决问题的来源分类及保留的 workspace / 台账路径。
-18. 功能、静态视觉和交互过程的适用性、独立结果、证据及未覆盖项；按 [system-testing 判定规则](../../../system-testing/references/execution-and-evidence.md) 汇总，不能以功能通过覆盖视觉失败。
+18. 功能测试的需求与预期依据、执行结果；有页面时另附静态视觉及交互过程的视觉结果和未覆盖项，按 [视觉判定规则](../../../ui-visual-testing/references/execution-and-evidence.md) 判断视觉部分，不能相互替代。
 
 ## 验收前必须确认
 
