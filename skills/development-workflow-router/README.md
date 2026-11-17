@@ -47,7 +47,9 @@ direct-flow 不生成完整提示词，也不只输出流程卡片。它和 prom
 
 执行方式与子代理授权分别确定：`inline` 使用 `executing-plans`，由主 agent 实现；`subagent-driven` 使用 `subagent-driven-development`，由已获授权的专业子代理实现。用户已有选择时沿用；不因角色或工具可用而自动获准派发。项目 `AGENTS.md` 比全局规则更严格时，继续遵守项目限制。
 
-专业角色的触发条件、阶段、输入输出及读写边界统一维护在 [角色职责与路由](references/agent-skill-routing.md)，覆盖 14 个角色，包括浏览器复现的 `browser-debugger` 和页面验收的 `ui-ux-tester`。用户授权使用子代理后，由主 agent 按需求自动选择必要角色，不必每次重复指定前端、后端、审查分别交给谁，也不会默认启动全部角色。
+专业角色的触发条件、阶段、输入输出及读写边界统一维护在 [角色职责与路由](references/agent-skill-routing.md)，覆盖 16 个角色，包括浏览器复现的 `browser-debugger`、页面验收的 `ui-ux-tester`、测试策划的 `qa-expert` 和自动化实现的 `test-automator`。用户授权使用子代理后，由主 agent 按需求自动选择必要角色，不必每次重复指定前端、后端、审查分别交给谁，也不会默认启动全部角色。
+
+测试阶段接入 [system-testing](../system-testing/SKILL.md)，分别验证功能、静态视觉和交互过程。页面逻辑通过但存在遮挡、溢出或其他已确认视觉缺陷时，整体不能通过；UI 规则与体验判断按需使用 `ui-ux-pro-max`，项目现有规范优先。明确只测试已有系统时直接路由到该 skill，不强制进入开发执行器。
 
 ### prompt-preview
 

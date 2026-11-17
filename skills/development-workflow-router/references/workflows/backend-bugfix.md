@@ -95,6 +95,8 @@
 
 - 使用：
   - `superpowers:writing-plans`
+  - `system-testing`（仅策划测试范围、状态、数据与验收条件，本阶段不执行测试或写脚本）
+  - `qa-expert`（风险、跨模块或多状态覆盖需要专项策划时，只读分析）
 - 输入：
   - 根因定位结果
   - 修复方案
@@ -122,6 +124,7 @@
   - `superpowers:subagent-driven-development`（execution_mode=subagent-driven，已获子代理授权）
   - `superpowers:test-driven-development`
   - `spring-boot-engineer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担后端实现职责）
+  - `test-automator`（仅已授权的 subagent-driven 测试实现任务，限定测试及必要配置；inline 由主 agent 实现，不修改业务代码）
 - 输入：
   - 已确认的 execution_mode、子代理授权依据和适用 AGENTS.md
   - 已确认的修复计划
@@ -178,6 +181,7 @@
 ### 7. 回归测试
 
 - 使用：
+  - [system-testing](../../../system-testing/SKILL.md)（复用测试计划，分别验证功能、静态视觉和交互过程；不适用项说明依据）
   - 项目测试命令
   - `superpowers:verification-before-completion`
 - 输入：
@@ -188,6 +192,7 @@
   - 证明复现场景通过
   - 证明相关接口测试或最小回归测试通过
 - 输出：
+  - 三维适用性、独立状态、参照与证据、未覆盖项，以及按 system-testing 规则汇总的整体结论
   - 测试命令
   - 测试结果：`passed` / `failed` / `not-run`
   - 失败说明，如有

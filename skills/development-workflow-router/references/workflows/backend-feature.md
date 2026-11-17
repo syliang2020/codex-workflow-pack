@@ -98,6 +98,8 @@
 
 - 使用：
   - `superpowers:writing-plans`
+  - `system-testing`（仅策划测试范围、状态、数据与验收条件，本阶段不执行测试或写脚本）
+  - `qa-expert`（风险、跨模块或多状态覆盖需要专项策划时，只读分析）
 - 输入：
   - 需求、接口契约、数据访问方案和设计门禁结论；已确认与待合并确认的输入分别标注
   - 项目构建和测试约束
@@ -123,6 +125,7 @@
   - `superpowers:executing-plans`（execution_mode=inline，主 agent 实现）
   - `superpowers:subagent-driven-development`（execution_mode=subagent-driven，已获子代理授权）
   - `spring-boot-engineer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担后端实现职责）
+  - `test-automator`（仅已授权的 subagent-driven 测试实现任务，限定测试及必要配置；inline 由主 agent 实现，不修改业务代码）
 - 输入：
   - 已确认的 execution_mode、子代理授权依据和适用 AGENTS.md
   - 已确认的 writing-plans
@@ -174,6 +177,7 @@
 ### 7. 测试与验证
 
 - 使用：
+  - [system-testing](../../../system-testing/SKILL.md)（复用测试计划，分别验证功能、静态视觉和交互过程；不适用项说明依据）
   - 项目测试命令
   - `superpowers:verification-before-completion`
 - 输入：
@@ -183,6 +187,7 @@
 - 目标：
   - 验证实现符合需求和回归要求
 - 输出：
+  - 三维适用性、独立状态、参照与证据、未覆盖项，以及按 system-testing 规则汇总的整体结论
   - 测试命令
   - 测试结果：`passed` / `failed` / `not-run`
   - 失败说明，如有

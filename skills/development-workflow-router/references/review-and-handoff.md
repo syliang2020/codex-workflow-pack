@@ -68,12 +68,14 @@
 1. 不修改文件。
 2. 不进入 `executing-plans` 或 `subagent-driven-development`。
 3. 不启动实现型 subagent。
-4. 仅在用户及适用 `AGENTS.md` 已授权时，按只读边界启动 `reviewer`、`api-designer`、`sql-pro`、`debugger` 或 `security-auditor`；review-only 本身不构成子代理授权。
+4. 仅在用户及适用 `AGENTS.md` 已授权时，按只读边界启动 `reviewer`、`api-designer`、`sql-pro`、`debugger`、`security-auditor` 或 `qa-expert`；review-only 本身不构成子代理授权，不派发 `test-automator` 等实现角色。
 5. 未获授权、模式禁止或工具不可用时，由主 agent 只读审查并准确说明原因；不能把自查描述为独立审查。
 6. 输出必须区分历史问题、本次新增问题、本次修改扩大历史问题。
 7. 本次新增或扩大的问题必须标为需要修复；不能标成历史遗留。
 
 ## 测试结果记录
+
+按 [system-testing](../../system-testing/references/execution-and-evidence.md) 分别记录功能、静态视觉和交互过程。任一适用项失败，整体未通过；适用项未运行，不能宣布完整验收通过。不适用项说明理由，不冒充通过。UI 缺陷保留参照、窗口、步骤和脱敏证据，修复后复测原问题及相邻路径。
 
 测试结果必须标记为：
 

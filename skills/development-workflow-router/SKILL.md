@@ -15,6 +15,7 @@ description: Use when a user wants a Superpowers workflow for backend, frontend,
 - 使用 Superpowers 开发链路前读取 [Superpowers 兼容约定](references/superpowers-compatibility.md)，处理执行方式、授权、文档和收尾边界。
 - 需要选择 skill / subagent、生成阶段分工或派发任务时，读取 [角色职责与路由](references/agent-skill-routing.md)，按其中的完整职责表选择，不要求用户逐个指定角色。
 - 执行、审查、子代理回收和验收时再读取 `references/review-and-handoff.md`。
+- 策划或执行验收测试时读取 [system-testing](../system-testing/SKILL.md)，复用其功能、静态视觉和交互过程规范；测试阶段不能仅以功能通过宣布页面验收通过。
 
 ## Workflow 单一来源规则
 
@@ -131,7 +132,7 @@ prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每
 - 不进入 `executing-plans` 或 `subagent-driven-development`。
 - 不启动实现型 subagent。
 - 不修改文件。
-- 可以按只读边界使用 `reviewer`、`api-designer`、`sql-pro`、`debugger`、`security-auditor` 或相关 skill。
+- 可以按只读边界使用 `reviewer`、`api-designer`、`sql-pro`、`debugger`、`security-auditor`、`qa-expert` 或相关 skill；不启动测试脚本实现角色。
 - 每次启动只读子代理仍须符合适用 `AGENTS.md` 的授权条件；review-only 或仅请求“检查”本身不构成子代理授权。未获授权时由主 agent 只读审查并注明执行者。
 - 输出必须区分历史问题、本次新增问题、本次修改扩大历史问题。
 
@@ -145,7 +146,9 @@ prompt-preview 默认不输出独立的【Skill / Subagent 路由】章节。每
 
 ## 任务分类
 
-进入业务开发路由时，将任务判断为以下 6 类之一；review-only 和 session-diagnosis 不套用业务六分类：
+用户明确要求执行已有系统或菜单测试时，路由到 [system-testing](../system-testing/SKILL.md)，复用已确认范围，不强制进入开发执行器；只要求预览或只读分析时继续遵守相应模式边界。
+
+进入业务开发路由时，将任务判断为以下 6 类之一；review-only、session-diagnosis 和独立测试请求不套用业务六分类：
 
 - `backend-feature`：只做后端功能开发。
 - `frontend-feature`：只做前端功能开发。

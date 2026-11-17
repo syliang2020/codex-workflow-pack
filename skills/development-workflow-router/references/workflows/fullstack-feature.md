@@ -99,6 +99,8 @@
 
 - 使用：
   - `superpowers:writing-plans`
+  - `system-testing`（仅策划测试范围、状态、数据与验收条件，本阶段不执行测试或写脚本）
+  - `qa-expert`（风险、跨模块或多状态覆盖需要专项策划时，只读分析）
 - 输入：
   - 需求、接口契约、数据库方案、UI 方案和设计审查结果；已确认与待合并确认的输入分别标注
   - 项目构建、测试和启动约束
@@ -126,6 +128,7 @@
   - `superpowers:subagent-driven-development`（execution_mode=subagent-driven，已获子代理授权）
   - `spring-boot-engineer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担后端实现职责）
   - `frontend-developer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担前端实现职责）
+  - `test-automator`（仅已授权的 subagent-driven 测试实现任务，限定测试及必要配置；inline 由主 agent 实现，不修改业务代码）
 - 输入：
   - 已确认的 execution_mode、子代理授权依据和适用 AGENTS.md
   - 已确认的 writing-plans
@@ -202,6 +205,7 @@
 ### 8. Playwright / 浏览器真实测试
 
 - 使用：
+  - [system-testing](../../../system-testing/SKILL.md)（复用测试计划，分别验证功能、静态视觉和交互过程；不适用项说明依据）
   - `playwright-local-runtime`
   - `ui-ux-tester`（页面可运行且需要用户流程验收或交互回归时，执行浏览器验证，不修改业务代码）
   - `browser-debugger`（浏览器验证失败、复现不稳定或需要浏览器证据定位原因时，只读诊断）
@@ -215,6 +219,7 @@
   - 覆盖主业务路径
   - 验证真实页面和接口联动
 - 输出：
+  - 三维适用性、独立状态、参照与证据、未覆盖项，以及按 system-testing 规则汇总的整体结论
   - 测试命令
   - 测试结果：`passed` / `failed` / `not-run`
   - 浏览器验证结果

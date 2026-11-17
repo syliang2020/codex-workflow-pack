@@ -84,6 +84,8 @@
 
 - 使用：
   - `superpowers:writing-plans`
+  - `system-testing`（仅策划测试范围、状态、数据与验收条件，本阶段不执行测试或写脚本）
+  - `qa-expert`（风险、跨模块或多状态覆盖需要专项策划时，只读分析）
 - 输入：
   - 已确认的 UI 方案
   - 接口依赖确认结果
@@ -110,6 +112,7 @@
   - `superpowers:executing-plans`（execution_mode=inline，主 agent 实现）
   - `superpowers:subagent-driven-development`（execution_mode=subagent-driven，已获子代理授权）
   - `frontend-developer`（仅 subagent-driven 且已获授权时启动；inline 由主 agent 承担前端实现职责）
+  - `test-automator`（仅已授权的 subagent-driven 测试实现任务，限定测试及必要配置；inline 由主 agent 实现，不修改业务代码）
 - 输入：
   - 已确认的 execution_mode、子代理授权依据和适用 AGENTS.md
   - 已确认的 writing-plans
@@ -160,6 +163,7 @@
 ### 7. 构建测试 / Playwright
 
 - 使用：
+  - [system-testing](../../../system-testing/SKILL.md)（复用测试计划，分别验证功能、静态视觉和交互过程；不适用项说明依据）
   - 项目前端测试命令
   - `playwright-local-runtime`
   - `ui-ux-tester`（页面可运行且需要用户流程验收或交互回归时，执行浏览器验证，不修改业务代码）
@@ -173,6 +177,7 @@
   - 执行项目构建、lint、类型检查或组件测试
   - 涉及关键页面时使用 Playwright 或真实浏览器验证
 - 输出：
+  - 三维适用性、独立状态、参照与证据、未覆盖项，以及按 system-testing 规则汇总的整体结论
   - 测试命令
   - 测试结果：`passed` / `failed` / `not-run`
   - 浏览器验证结果，如适用
