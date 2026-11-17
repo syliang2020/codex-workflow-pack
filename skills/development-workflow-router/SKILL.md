@@ -13,7 +13,7 @@ description: Use when a user wants a Superpowers workflow for backend, frontend,
 - 只读取当前任务类型对应的一个 workflow。
 - 进入对应模式时再读取对应 mode 文件。
 - 使用 Superpowers 开发链路前读取 [Superpowers 兼容约定](references/superpowers-compatibility.md)，处理执行方式、授权、文档和收尾边界。
-- 需要选择 skill / subagent 时再读取 `references/agent-skill-routing.md`。
+- 需要选择 skill / subagent、生成阶段分工或派发任务时，读取 [角色职责与路由](references/agent-skill-routing.md)，按其中的完整职责表选择，不要求用户逐个指定角色。
 - 执行、审查、子代理回收和验收时再读取 `references/review-and-handoff.md`。
 
 ## Workflow 单一来源规则
@@ -26,6 +26,7 @@ description: Use when a user wants a Superpowers workflow for backend, frontend,
 - 如果 mode 文件和 workflow 文件冲突，以 workflow 文件为准。
 - 用户当前指令及适用的 `AGENTS.md` 优先于本 skill、workflow 和 Superpowers。workflow 的单一来源规则不改变授权和质量约束。
 - 每个 workflow 阶段都必须写明：使用的 skill / subagent、输入、输出、是否允许改代码、是否需要用户确认。
+- 子代理职责、触发条件和相邻角色边界以 `references/agent-skill-routing.md` 为单一来源；workflow 负责绑定适用阶段。已获子代理授权后，由主 agent 按任务条件选择必要角色，记录触发依据和读写范围，不默认启动全部角色。
 
 ## 工作模式
 

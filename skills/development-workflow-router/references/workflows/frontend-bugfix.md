@@ -4,6 +4,8 @@
 
 执行分流、授权、专业门禁与最终收尾遵守 [Superpowers 兼容约定](../superpowers-compatibility.md)。
 
+阶段中的专业角色按 [角色职责表](../agent-skill-routing.md) 自动选择；条件角色继承表中的输入输出和读写边界，实际分工随阶段记录。
+
 ## 标准流程
 
 ### 1. `bug-reproduce` / `superpowers:systematic-debugging`
@@ -11,6 +13,7 @@
 - 使用：
   - `superpowers:systematic-debugging`
   - `debugger`
+  - `browser-debugger`（需要真实浏览器复现或采集请求、控制台、DOM、事件、会话及动态视觉证据时，只读复现）
   - `playwright-local-runtime`（需要真实浏览器复现时）
 - 输入：
   - 用户描述
@@ -39,7 +42,7 @@
 - 使用：
   - `superpowers:systematic-debugging`
   - `debugger`
-  - `ui-fixer`
+  - `browser-debugger`（根因需要浏览器请求、运行时或状态变化证据时，只读定位，复用上一阶段证据）
 - 输入：
   - 复现结果
   - 相关前端代码
@@ -64,6 +67,8 @@
 - 使用：
   - `ui-ux-pro-max`
   - `api-designer`（涉及接口契约时）
+  - `product-manager`（修复需要确认业务范围、优先级或验收取舍时，只读梳理）
+  - `ui-designer`（修复涉及交互取舍，需要具体 UI 方案时，只读设计）
   - `superpowers:brainstorming`（修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时）
 - 输入：
   - 已验证根因
@@ -150,6 +155,7 @@
 - 使用：
   - `ui-ux-pro-max`
   - 所选执行器的最终通用审查：获准时由只读 `reviewer` 执行，否则主 agent 自查并注明限制；复用等价审查证据
+  - `security-auditor`（本次 diff 涉及鉴权、敏感数据或外部输入等需专项核验的安全边界时，只读检查）
 - 输入：
   - 当前 diff
   - 根因和修复方案
@@ -173,6 +179,8 @@
 - 使用：
   - 项目前端测试命令
   - `playwright-local-runtime`
+  - `ui-ux-tester`（页面可运行且需要用户流程验收或交互回归时，执行浏览器验证，不修改业务代码）
+  - `browser-debugger`（回归失败、复现不稳定或原因不清时，只读诊断，缺陷退回已确认的实现阶段修复）
   - `superpowers:verification-before-completion`
 - 输入：
   - 修复后的代码
@@ -185,6 +193,7 @@
   - 测试命令
   - 测试结果：`passed` / `failed` / `not-run`
   - 浏览器验证结果，如适用
+  - 用户流程覆盖、脱敏交互证据、缺陷和未验证项；原因不清时补充浏览器诊断证据
   - 失败或未运行说明
 - 是否允许改代码：
   - failed 且确认是本次改动导致时，返回已确认的执行阶段修复

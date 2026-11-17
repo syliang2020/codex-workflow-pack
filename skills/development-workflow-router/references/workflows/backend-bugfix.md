@@ -4,6 +4,8 @@
 
 执行分流、授权、专业门禁与最终收尾遵守 [Superpowers 兼容约定](../superpowers-compatibility.md)。
 
+阶段中的专业角色按 [角色职责表](../agent-skill-routing.md) 自动选择；条件角色继承表中的输入输出和读写边界，实际分工随阶段记录。
+
 ## 标准流程
 
 ### 1. `bug-reproduce` / `superpowers:systematic-debugging`
@@ -38,6 +40,7 @@
 - 使用：
   - `superpowers:systematic-debugging`
   - `debugger`
+  - `database-optimizer`（慢查询、执行计划、索引或锁竞争是疑点时，只读定位数据库性能根因）
 - 输入：
   - 复现结果
   - 相关后端代码
@@ -63,6 +66,9 @@
   - `api-designer`
   - `sql-pro`
   - `backend-feature-design-review`
+  - `microservices-architect`（修复涉及服务边界、跨服务调用或分布式一致性取舍时，只读设计）
+  - `product-manager`（修复需要确认业务范围、优先级或验收取舍时，只读梳理）
+  - `security-auditor`（修复方案涉及需要专项核验的安全边界时，只读检查）
   - `superpowers:brainstorming`（修复会改变业务规则、扩大范围、影响公共工具或变成 feature 时）
 - 输入：
   - 已验证根因
@@ -149,6 +155,7 @@
 - 使用：
   - `backend-feature-design-review`
   - 所选执行器的最终通用审查：获准时由只读 `reviewer` 执行，否则主 agent 自查并注明限制；复用等价审查证据
+  - `security-auditor`（本次 diff 涉及需要专项核验的安全边界时，只读检查并将证据交给 reviewer）
 - 输入：
   - 当前 diff
   - 根因和修复方案

@@ -4,12 +4,15 @@
 
 执行分流、授权、专业门禁与最终收尾遵守 [Superpowers 兼容约定](../superpowers-compatibility.md)。
 
+阶段中的专业角色按 [角色职责表](../agent-skill-routing.md) 自动选择；条件角色继承表中的输入输出和读写边界，实际分工随阶段记录。
+
 ## 标准流程
 
 ### 1. `superpowers:brainstorming`
 
 - 使用：
   - `superpowers:brainstorming`
+  - `product-manager`（目标、范围、优先级或验收标准存在影响交付的歧义时，只读梳理待确认取舍）
 - 输入：
   - 用户需求
   - 项目上下文
@@ -41,6 +44,8 @@
 - 使用：
   - `api-designer`
   - `sql-pro`
+  - `microservices-architect`（涉及服务边界、跨服务调用或分布式一致性取舍时，只读设计）
+  - `database-optimizer`（存在数据库性能问题，需要执行计划、索引或锁竞争分析时，只读分析）
 - 输入：
   - 已确认的 brainstorm 结果
   - 项目接口规范
@@ -68,6 +73,7 @@
 
 - 使用：
   - `backend-feature-design-review`
+  - `security-auditor`（方案存在需要专项核验的安全边界时，只读检查）
 - 输入：
   - 已确认的需求边界
   - 接口契约草案
@@ -144,6 +150,7 @@
 - 使用：
   - `backend-feature-design-review`
   - 所选执行器的最终通用审查：获准时由只读 `reviewer` 执行，否则主 agent 自查并注明限制；复用等价审查证据
+  - `security-auditor`（本次 diff 涉及需要专项核验的安全边界时，只读检查并将证据交给 reviewer）
 - 输入：
   - 当前 diff
   - writing-plans

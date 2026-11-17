@@ -47,6 +47,8 @@ direct-flow 不生成完整提示词，也不只输出流程卡片。它和 prom
 
 执行方式与子代理授权分别确定：`inline` 使用 `executing-plans`，由主 agent 实现；`subagent-driven` 使用 `subagent-driven-development`，由已获授权的专业子代理实现。用户已有选择时沿用；不因角色或工具可用而自动获准派发。项目 `AGENTS.md` 比全局规则更严格时，继续遵守项目限制。
 
+专业角色的触发条件、阶段、输入输出及读写边界统一维护在 [角色职责与路由](references/agent-skill-routing.md)，覆盖 14 个角色，包括浏览器复现的 `browser-debugger` 和页面验收的 `ui-ux-tester`。用户授权使用子代理后，由主 agent 按需求自动选择必要角色，不必每次重复指定前端、后端、审查分别交给谁，也不会默认启动全部角色。
+
 ### prompt-preview
 
 提示词预览模式。
@@ -177,6 +179,13 @@ cp -R skills/development-workflow-router ~/.codex/skills/development-workflow-ro
 
 ```text
 按 development-workflow-router 处理这个需求，并在当前会话继续开发。确认计划前不要写代码。
+```
+
+```text
+使用 development-workflow-router，在当前会话执行，使用子代理。
+由 router 按职责表选择必要角色，随计划说明分工和读写范围。
+确认设计、计划和执行方式后再实现。
+需求：……
 ```
 
 ```text
