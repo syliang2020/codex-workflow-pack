@@ -10,6 +10,9 @@ function parseArgs(argv) {
     if (token === "--help" || token === "-h") options.help = true;
     else if (token === "--url") options.url = argv[++index];
     else if (token === "--out") options.out = argv[++index];
+    else if (token === "--config") options.config = argv[++index];
+    else if (token === "--screenshots-dir") options.screenshotsDir = argv[++index];
+    else if (token === "--page") options.pageName = argv[++index];
     else if (token === "--viewport") options.viewport.push(argv[++index]);
     else if (token === "--critical") options.critical.push(argv[++index]);
     else if (token === "--ignore-overflow") options.ignoreOverflow.push(argv[++index]);
@@ -23,11 +26,15 @@ function parseArgs(argv) {
 function usage() {
   return [
     "Usage: node visual-scan.cjs --url <url> --out <json> [options]",
+    "       node visual-scan.cjs --config <matrix.json> --out <json> [options]",
+    "  --config <file>                page x state x viewport matrix JSON",
+    "  --page <name>                  run only one named matrix page",
     "  --viewport <width>x<height>     repeatable, default 1280x720",
     "  --wait-ms <n>                  wait for stable state, default 500",
     "  --sample-ms <n>                key element position sample duration, default 1000",
     "  --critical <selector>          repeatable critical element selector",
     "  --ignore-overflow <selector>   repeatable allowed internal scroll container",
+    "  --screenshots-dir <dir>        save screenshots for review-required findings",
   ].join("\n");
 }
 
@@ -65,11 +72,23 @@ function loadPlaywright() {
   }
 }
 
-async function scanPage(page, options, viewport) {
+function loadConfig(file) {
+  const value = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (!value || !Array.isArray(value.pages) || value.pages.length === 0) {
+    throw new Error("Config must contain a non-empty pages array");
+  }
+  return value.pages;
+}
+
+function safeName(value) {
+  return String(value || "page").replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "") || "page";
+}
+
+async function scanPage(page, options, viewport, screenshotPath) {
   await page.setViewportSize(viewport);
   await page.goto(options.url, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(options.waitMs);
-  return page.evaluate(({ critical, ignoreOverflow, sampleMs }) => {
+  const result = await page.evaluate(async ({ critical, ignoreOverflow, sampleMs }) => {
     const visible = (element) => {
       const style = getComputedStyle(element);
       const rect = element.getBoundingClientRect();
@@ -103,6 +122,32 @@ async function scanPage(page, options, viewport) {
       if (rect.left < 0 || rect.top < 0 || rect.right > innerWidth || rect.bottom > innerHeight) criticalFindings.push({ selector, issue: "outside-viewport", box: box(element) });
       if (covered) criticalFindings.push({ selector, issue: "center-covered", box: box(element), coveringTag: top.tagName.toLowerCase(), coveringClass: top.className || null });
     }
+    let cls = 0;
+    let clsSessionValue = 0;
+    let clsSessionStart = 0;
+    let clsLastTime = 0;
+    let clsEntries = 0;
+    let layoutObserver;
+    try {
+      layoutObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.hadRecentInput) continue;
+          const time = entry.startTime;
+          if (!clsSessionStart || time - clsLastTime > 1000 || time - clsSessionStart > 5000) {
+            clsSessionStart = time;
+            clsSessionValue = entry.value;
+          } else {
+            clsSessionValue += entry.value;
+          }
+          cls = Math.max(cls, clsSessionValue);
+          clsLastTime = time;
+          clsEntries += 1;
+        }
+      });
+      layoutObserver.observe({ type: "layout-shift", buffered: true });
+    } catch {
+      layoutObserver = null;
+    }
     const collectSamples = () => new Promise((resolve) => {
       const samples = [];
       const started = performance.now();
@@ -120,22 +165,41 @@ async function scanPage(page, options, viewport) {
       if (sampleMs > 0 && critical.length) requestAnimationFrame(sample);
       else resolve([]);
     });
-    return collectSamples().then((samples) => ({ viewport: { width: innerWidth, height: innerHeight }, pageWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth, overflow, criticalFindings, samples }));
+    return collectSamples().then((samples) => {
+      layoutObserver?.disconnect();
+      return { viewport: { width: innerWidth, height: innerHeight }, pageWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth, overflow, criticalFindings, samples, cls, clsEntries };
+    });
   }, { critical: options.critical, ignoreOverflow: options.ignoreOverflow, sampleMs: options.sampleMs });
+  const hasCandidate = result.pageWidth > result.viewportWidth + 2 || result.overflow.length > 0 || result.criticalFindings.length > 0;
+  if (screenshotPath && hasCandidate) {
+    fs.mkdirSync(path.dirname(path.resolve(screenshotPath)), { recursive: true });
+    await page.screenshot({ path: screenshotPath, fullPage: true, scale: "css" });
+    result.screenshot = screenshotPath;
+  }
+  return result;
 }
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) { console.log(usage()); return 0; }
-  if (!options.url || !options.out) throw new Error("--url and --out are required");
-  const viewports = (options.viewport.length ? options.viewport : ["1280x720"]).map(parseViewport);
+  if ((!options.url && !options.config) || !options.out) throw new Error("--url or --config, and --out are required");
+  const matrixPages = options.config ? loadConfig(options.config) : [{ name: "page", url: options.url, viewports: options.viewport }];
+  const selectedPages = options.pageName ? matrixPages.filter((page) => page.name === options.pageName) : matrixPages;
+  if (!selectedPages.length) throw new Error(`No matrix page matched: ${options.pageName}`);
   let playwright;
   try { playwright = loadPlaywright(); } catch (error) { notRun(options.out, error.message, options); return 2; }
   const browser = await playwright.chromium.launch({ headless: true });
   const page = await browser.newPage();
   const results = [];
   try {
-    for (const viewport of viewports) results.push(await scanPage(page, options, viewport));
+    for (const matrixPage of selectedPages) {
+      const pageOptions = { ...options, ...matrixPage, url: matrixPage.url || options.url, critical: matrixPage.critical || options.critical, ignoreOverflow: matrixPage.ignoreOverflow || options.ignoreOverflow, waitMs: matrixPage.waitMs ?? options.waitMs, sampleMs: matrixPage.sampleMs ?? options.sampleMs };
+      const viewports = (matrixPage.viewports?.length ? matrixPage.viewports : (options.viewport.length ? options.viewport : ["1280x720"])).map((value) => typeof value === "string" ? parseViewport(value) : value);
+      for (const viewport of viewports) {
+        const id = `${safeName(matrixPage.name)}-${viewport.width}x${viewport.height}`;
+        results.push({ page: matrixPage.name || "page", state: matrixPage.state || null, ...(await scanPage(page, pageOptions, viewport, options.screenshotsDir ? path.join(options.screenshotsDir, `${id}.png`) : null)) });
+      }
+    }
   } catch (error) {
     await browser.close();
     writeJson(options.out, { status: "not-run", url: options.url, generatedAt: new Date().toISOString(), viewports: results, findings: [], notRunReason: error.message });
@@ -148,7 +212,7 @@ async function main() {
     ...result.criticalFindings.map((item) => ({ type: "critical-element", viewport: result.viewport, ...item })),
   ]);
   const status = findings.length ? "review-required" : "passed-candidates";
-  writeJson(options.out, { status, url: options.url, generatedAt: new Date().toISOString(), options: { critical: options.critical, ignoreOverflow: options.ignoreOverflow, waitMs: options.waitMs, sampleMs: options.sampleMs }, viewports: results, findings });
+  writeJson(options.out, { status, url: options.url || null, config: options.config || null, generatedAt: new Date().toISOString(), options: { critical: options.critical, ignoreOverflow: options.ignoreOverflow, waitMs: options.waitMs, sampleMs: options.sampleMs, screenshotsDir: options.screenshotsDir || null }, viewports: results, findings });
   return 0;
 }
 

@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {
+      "name": "dashboard-normal",
+      "state": "normal",
+      "url": "http://localhost:3000/dashboard",
+      "viewports": ["1280x720", "1440x900"],
+      "critical": ["main", "[role=dialog]", "button[type=submit]"],
+      "ignoreOverflow": [".table-scroll-container"],
+      "waitMs": 500,
+      "sampleMs": 1000
+    }
+  ]
+}
