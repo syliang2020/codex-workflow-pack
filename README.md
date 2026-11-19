@@ -24,6 +24,8 @@ codex-workflow-pack/
 - `development-workflow-router`：根据后端、前端、全栈 feature/bugfix 判断任务类型，选择 direct-flow、prompt-preview 或 review-only，并路由到合适的 skills/subagents。详细说明见 [skills/development-workflow-router/README.md](skills/development-workflow-router/README.md)。
 - `backend-feature-design-review`：后端功能设计和代码审查门禁，重点检查字段语义、命名一致性、分层、校验、事务、save/update 复用、历史数据兼容和测试。详细说明见 [skills/backend-feature-design-review/README.md](skills/backend-feature-design-review/README.md)。
 - `ui-visual-testing`：独立执行或接入 router 的页面视觉检查，覆盖布局、样式和交互过程的视觉稳定性；不承担业务功能验收。使用说明见 [skills/ui-visual-testing/SKILL.md](skills/ui-visual-testing/SKILL.md)。
+  - 需要自动化扫描时，可按需运行 `skills/ui-visual-testing/scripts/visual-scan.cjs`；它输出溢出、关键元素可见性、遮挡候选和位置采样，不替代人工复核或功能验收。
+  - 需要截图基线或 CI 时，再读取 `skills/ui-visual-testing/references/baselines-and-ci.md`；不把通用 skill 绑定到特定项目的 runner 或启动命令。
 
 ### Internal skill
 
@@ -102,7 +104,7 @@ development-workflow-router
 分别报告静态视觉和交互过程的视觉结论、参照、证据与缺陷；不做业务功能验收，不修改业务代码。
 ```
 
-每次实际视觉执行默认保存本次 `REPORT.md`，链接截图及必要的过程证据，并在最终回复给出报告链接；未发现缺陷或执行受阻也留下记录，旧运行不覆盖。自动化回归脚本按需生成，不是每次必选产物。预览及明确禁止落盘等例外见 [报告交付约定](skills/ui-visual-testing/references/execution-and-evidence.md#报告文件与交付)。
+每次实际视觉执行默认保存本次 `REPORT.md`，链接截图及必要的过程证据，并在最终回复给出报告链接；未发现缺陷或执行受阻也留下记录，旧运行不覆盖。自动化回归脚本按需生成，不是每次必选产物。预览及明确禁止落盘等例外见 [报告交付约定](skills/ui-visual-testing/references/execution-and-evidence.md#报告交付)。
 
 需要测试策划或自动化实现时，按需配置 `qa-expert` 和 `test-automator`；仍从上方外部子代理来源安装，本仓库不复制其配置。角色不可用时由主 agent 承担职责并说明实际执行者。
 

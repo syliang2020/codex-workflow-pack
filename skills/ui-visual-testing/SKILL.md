@@ -16,11 +16,12 @@ description: Use when checking frontend page layout, spacing, overlap, clipping,
 | 确定页面、状态、窗口和参照范围 | [范围与页面状态](references/scope-and-states.md) |
 | 检查布局、间距、遮挡、溢出或动态视觉 | [视觉与交互检查](references/visual-and-interaction.md) |
 | 实际执行、判定、缺陷、复测或报告 | [执行与证据](references/execution-and-evidence.md) 和 [报告模板](references/report-template.md) |
+| 需要客观扫描或回归自动化 | [自动化扫描](references/automated-scan.md)；需要截图基线或 CI 时再读取 [基线与 CI](references/baselines-and-ci.md) |
 | 视觉问题原因不清 | `superpowers:systematic-debugging`，再回到当前检查 |
 | UI 规范或视觉取舍不明确 | `ui-ux-pro-max`；项目规范和同类组件优先 |
 | Windows 本机 Playwright / MCP 运行问题 | `playwright-local-runtime` |
 
-不要因为 skill 被触发就读取全部 reference。没有实际执行测试时，不读取报告模板，也不生成执行报告。
+不要因为 skill 被触发就读取全部 reference。没有实际执行测试时，不读取报告模板、自动化扫描或基线资料，也不生成执行报告。
 
 ## 核心边界
 
