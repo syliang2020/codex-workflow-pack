@@ -31,13 +31,14 @@ node skills/ui-visual-testing/scripts/visual-scan.cjs --config visual-matrix.jso
 - `--ignore-overflow <selector>`：允许内部横向滚动的容器，可重复指定。
 - `--screenshots-dir <dir>`：存在候选时保存每个页面和 viewport 的截图，并把路径写入 JSON。
 
-脚本输出 `status`、`url`、页面状态、viewport、horizontal overflow、critical element findings、overflow candidates、CLS、position samples、screenshot、error 和 `notRunReason`。扫描发现是证据和候选，不自动等于视觉缺陷：合法浮层、固定列、内部滚动和应用专属层级要回到页面规范与人工复核。
+脚本输出 `status`、`url`、页面状态、viewport、horizontal overflow、critical element findings、overflow candidates、text-clipping candidates、CLS、position samples、screenshot、error 和 `notRunReason`。扫描发现是证据和候选，不自动等于视觉缺陷：合法浮层、固定列、内部滚动和应用专属层级要回到页面规范与人工复核。
 
 `status` 的含义：`passed-candidates` 表示脚本没有发现客观候选，不等于完整视觉通过；`review-required` 表示存在候选，需要人工复核；`not-run` 表示环境或参数阻塞。无论哪种状态，都要把 JSON 结果链接到 `REPORT.md`。
 
 ## 判定边界
 
 - 页面横向溢出和关键元素被遮挡属于高价值客观信号，但脚本只报告选择器与几何信息，不擅自修复。
+- 选择框、输入框、按钮和表单标签的文字裁切会作为候选输出；候选需要结合项目允许的省略、tooltip、下拉展开和同类组件人工确认。
 - 通用元素两两相交会产生误报，脚本只对 `--critical` 元素检查覆盖，并把其他相交标为候选。
 - 位置采样用于发现过程位移，不等同于 CLS；采样结束后仍需结合用户动作判断是否是预期动画。
 - CLS 是加载和布局稳定性的辅助指标；它不覆盖所有交互动画和 `transform` 位移，也不能单独判定视觉通过。

@@ -122,6 +122,32 @@ async function scanPage(page, options, viewport, screenshotPath) {
       if (rect.left < 0 || rect.top < 0 || rect.right > innerWidth || rect.bottom > innerHeight) criticalFindings.push({ selector, issue: "outside-viewport", box: box(element) });
       if (covered) criticalFindings.push({ selector, issue: "center-covered", box: box(element), coveringTag: top.tagName.toLowerCase(), coveringClass: top.className || null });
     }
+    const textClippingFindings = [];
+    const textTargets = document.querySelectorAll("input, textarea, select, button, label, [role=combobox], [role=button], .el-form-item__label, .el-select__selected-item, .el-input__inner");
+    const textOf = (element) => {
+      if ("value" in element && element.value) return element.value;
+      const selected = element.querySelector?.("option:checked, .el-select__selected-item");
+      return (selected?.textContent || element.getAttribute("aria-label") || element.textContent || element.getAttribute("placeholder") || "").replace(/\s+/g, " ").trim();
+    };
+    const selectorOf = (element) => {
+      const classes = typeof element.className === "string" ? element.className.trim().split(/\s+/).filter(Boolean).slice(0, 2) : [];
+      return `${element.tagName.toLowerCase()}${classes.map((item) => `.${CSS.escape(item)}`).join("")}`;
+    };
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    for (const element of textTargets) {
+      if (!visible(element)) continue;
+      const text = textOf(element);
+      if (!text) continue;
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const padding = parseFloat(style.paddingLeft || "0") + parseFloat(style.paddingRight || "0");
+      if (context) context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      const measured = context ? context.measureText(text).width : 0;
+      const available = Math.max(0, rect.width - padding - 2);
+      const clipped = element.scrollWidth > element.clientWidth + 1 || measured > available + 1;
+      if (clipped) textClippingFindings.push({ selector: selectorOf(element), issue: "text-clipping-candidate", text: text.slice(0, 120), box: box(element), measuredTextWidth: Math.round(measured * 100) / 100, availableWidth: Math.round(available * 100) / 100, scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, textOverflow: style.textOverflow, overflow: style.overflow });
+    }
     let cls = 0;
     let clsSessionValue = 0;
     let clsSessionStart = 0;
@@ -167,10 +193,10 @@ async function scanPage(page, options, viewport, screenshotPath) {
     });
     return collectSamples().then((samples) => {
       layoutObserver?.disconnect();
-      return { viewport: { width: innerWidth, height: innerHeight }, pageWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth, overflow, criticalFindings, samples, cls, clsEntries };
+      return { viewport: { width: innerWidth, height: innerHeight }, pageWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth, overflow, criticalFindings, textClippingFindings, samples, cls, clsEntries };
     });
   }, { critical: options.critical, ignoreOverflow: options.ignoreOverflow, sampleMs: options.sampleMs });
-  const hasCandidate = result.pageWidth > result.viewportWidth + 2 || result.overflow.length > 0 || result.criticalFindings.length > 0;
+  const hasCandidate = result.pageWidth > result.viewportWidth + 2 || result.overflow.length > 0 || result.criticalFindings.length > 0 || result.textClippingFindings.length > 0;
   if (screenshotPath && hasCandidate) {
     fs.mkdirSync(path.dirname(path.resolve(screenshotPath)), { recursive: true });
     await page.screenshot({ path: screenshotPath, fullPage: true, scale: "css" });
@@ -210,6 +236,7 @@ async function main() {
     ...(result.pageWidth > result.viewportWidth + 2 ? [{ type: "horizontal-overflow", viewport: result.viewport, pageWidth: result.pageWidth, viewportWidth: result.viewportWidth }] : []),
     ...result.overflow.map((item) => ({ type: "overflow-candidate", viewport: result.viewport, ...item })),
     ...result.criticalFindings.map((item) => ({ type: "critical-element", viewport: result.viewport, ...item })),
+    ...result.textClippingFindings.map((item) => ({ type: "text-clipping-candidate", viewport: result.viewport, ...item })),
   ]);
   const status = findings.length ? "review-required" : "passed-candidates";
   writeJson(options.out, { status, url: options.url || null, config: options.config || null, generatedAt: new Date().toISOString(), options: { critical: options.critical, ignoreOverflow: options.ignoreOverflow, waitMs: options.waitMs, sampleMs: options.sampleMs, screenshotsDir: options.screenshotsDir || null }, viewports: results, findings });
