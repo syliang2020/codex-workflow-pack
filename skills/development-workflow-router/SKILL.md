@@ -17,6 +17,7 @@ description: Use when a user wants a Superpowers workflow for backend, frontend,
 - 执行、审查、子代理回收和验收时再读取 `references/review-and-handoff.md`。
 - 涉及页面布局、样式或交互过程的视觉检查时读取 [ui-visual-testing](../ui-visual-testing/SKILL.md)。功能测试仍依据需求、契约与项目测试计划独立执行；纯后端不调用视觉 skill。
 - 视觉测试阶段在适用 `AGENTS.md` 已授权时默认启动只读 `ui-ux-tester`；用户明确禁止子代理、prompt-preview 或授权不足时由主 agent 执行并说明。
+- 视觉测试派发时传递 [浏览器执行约定](../ui-visual-testing/references/browser-execution.md)：用户指定的浏览器优先，未指定则 Playwright 新开 Google Chrome 可见窗口；回收时核对实际浏览器及 viewport，指定产品不可用不擅自替换。
 
 ## Workflow 单一来源规则
 

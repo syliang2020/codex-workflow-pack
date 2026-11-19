@@ -24,6 +24,7 @@ codex-workflow-pack/
 - `development-workflow-router`：根据后端、前端、全栈 feature/bugfix 判断任务类型，选择 direct-flow、prompt-preview 或 review-only，并路由到合适的 skills/subagents。详细说明见 [skills/development-workflow-router/README.md](skills/development-workflow-router/README.md)。
 - `backend-feature-design-review`：后端功能设计和代码审查门禁，重点检查字段语义、命名一致性、分层、校验、事务、save/update 复用、历史数据兼容和测试。详细说明见 [skills/backend-feature-design-review/README.md](skills/backend-feature-design-review/README.md)。
 - `ui-visual-testing`：独立执行或接入 router 的页面视觉检查，覆盖布局、样式和交互过程的视觉稳定性；不承担业务功能验收。使用说明见 [skills/ui-visual-testing/SKILL.md](skills/ui-visual-testing/SKILL.md)。
+  - 用户指定浏览器则使用指定产品，不可用时报告阻塞；未指定时通过 Playwright 新开 Google Chrome 可见窗口。此要求同时传给视觉子代理，报告记录实际工具和 viewport；CLI 支持 `--browser`。
   - 需要自动化扫描时，可按需运行 `skills/ui-visual-testing/scripts/visual-scan.cjs`；它输出溢出、关键元素可见性、遮挡候选和位置采样，不替代人工复核或功能验收。
   - 需要截图基线或 CI 时，再读取 `skills/ui-visual-testing/references/baselines-and-ci.md`；不把通用 skill 绑定到特定项目的 runner 或启动命令。
 

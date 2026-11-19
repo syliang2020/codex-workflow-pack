@@ -21,6 +21,8 @@ description: Use when running Playwright in Windows Codex environments, especial
 
 如果只是普通 Node 18+ / Node 22 项目，项目内 Playwright 依赖和脚本都正常，且没有本机权限问题，可以直接使用项目自己的命令，不必套完整本机链路。
 
+用户指定浏览器时使用指定产品，不可用则报告阻塞，不擅自替换；未指定时，页面视觉测试通过 Playwright 新开本机 Google Chrome 可见窗口（`channel: "chrome"`、`headless: false`）。把浏览器选择、专用 profile、viewport 和证据目录传给子代理。先尝试对应浏览器的 MCP，再检查项目现有 CLI / 库；不因为 MCP 不可用或内置浏览器已有登录态静默换浏览器。降级须说明原因；CI 或用户指定时才显式使用 headless。
+
 ## Path Placeholders
 
 本 skill 不保存作者机器的真实路径。使用前先把以下占位符替换成本机可用路径：

@@ -3,11 +3,21 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+const BROWSER_TARGETS = {
+  chrome: { engine: "chromium", channel: "chrome" },
+  edge: { engine: "chromium", channel: "msedge" },
+  firefox: { engine: "firefox" },
+  chromium: { engine: "chromium" },
+  webkit: { engine: "webkit" },
+};
+
 function parseArgs(argv) {
-  const options = { viewport: [], critical: [], ignoreOverflow: [], waitMs: 500, sampleMs: 1000 };
+  const options = { viewport: [], critical: [], ignoreOverflow: [], waitMs: 500, sampleMs: 1000, headless: false, browser: "chrome" };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--help" || token === "-h") options.help = true;
+    else if (token === "--headless") options.headless = true;
+    else if (token === "--browser") options.browser = argv[++index] || "";
     else if (token === "--url") options.url = argv[++index];
     else if (token === "--out") options.out = argv[++index];
     else if (token === "--config") options.config = argv[++index];
@@ -35,6 +45,8 @@ function usage() {
     "  --critical <selector>          repeatable critical element selector",
     "  --ignore-overflow <selector>   repeatable allowed internal scroll container",
     "  --screenshots-dir <dir>        save screenshots for review-required findings",
+    "  --browser <name>              chrome (default), edge, firefox, chromium, webkit",
+    "  --headless                    explicitly run the selected browser without a visible window (CI)",
   ].join("\n");
 }
 
@@ -54,6 +66,7 @@ function notRun(out, reason, options) {
     status: "not-run",
     url: options.url || null,
     generatedAt: new Date().toISOString(),
+    browser: { name: options.browser, ...(Object.prototype.hasOwnProperty.call(BROWSER_TARGETS, options.browser) ? BROWSER_TARGETS[options.browser] : {}), headless: options.headless },
     viewports: [],
     findings: [],
     notRunReason: reason,
@@ -209,15 +222,23 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) { console.log(usage()); return 0; }
   if ((!options.url && !options.config) || !options.out) throw new Error("--url or --config, and --out are required");
+  if (!Object.prototype.hasOwnProperty.call(BROWSER_TARGETS, options.browser)) {
+    notRun(options.out, `Unsupported browser: ${options.browser}. No substitute was launched.`, options);
+    return 2;
+  }
   const matrixPages = options.config ? loadConfig(options.config) : [{ name: "page", url: options.url, viewports: options.viewport }];
   const selectedPages = options.pageName ? matrixPages.filter((page) => page.name === options.pageName) : matrixPages;
   if (!selectedPages.length) throw new Error(`No matrix page matched: ${options.pageName}`);
   let playwright;
   try { playwright = loadPlaywright(); } catch (error) { notRun(options.out, error.message, options); return 2; }
-  const browser = await playwright.chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  // 用户选择优先；未指定时新开可见的 Chrome，CI 必须显式指定 headless。
+  const target = BROWSER_TARGETS[options.browser];
+  const browserOptions = { ...(target.channel ? { channel: target.channel } : {}), headless: options.headless };
+  let browser;
   const results = [];
   try {
+    browser = await playwright[target.engine].launch(browserOptions);
+    const page = await browser.newPage();
     for (const matrixPage of selectedPages) {
       const pageOptions = { ...options, ...matrixPage, url: matrixPage.url || options.url, critical: matrixPage.critical || options.critical, ignoreOverflow: matrixPage.ignoreOverflow || options.ignoreOverflow, waitMs: matrixPage.waitMs ?? options.waitMs, sampleMs: matrixPage.sampleMs ?? options.sampleMs };
       const viewports = (matrixPage.viewports?.length ? matrixPage.viewports : (options.viewport.length ? options.viewport : ["1280x720"])).map((value) => typeof value === "string" ? parseViewport(value) : value);
@@ -227,8 +248,8 @@ async function main() {
       }
     }
   } catch (error) {
-    await browser.close();
-    writeJson(options.out, { status: "not-run", url: options.url, generatedAt: new Date().toISOString(), viewports: results, findings: [], notRunReason: error.message });
+    await browser?.close().catch(() => {});
+    writeJson(options.out, { ...notRun(null, error.message, options), viewports: results });
     return 2;
   }
   await browser.close();
@@ -239,8 +260,8 @@ async function main() {
     ...result.textClippingFindings.map((item) => ({ type: "text-clipping-candidate", viewport: result.viewport, ...item })),
   ]);
   const status = findings.length ? "review-required" : "passed-candidates";
-  writeJson(options.out, { status, url: options.url || null, config: options.config || null, generatedAt: new Date().toISOString(), options: { critical: options.critical, ignoreOverflow: options.ignoreOverflow, waitMs: options.waitMs, sampleMs: options.sampleMs, screenshotsDir: options.screenshotsDir || null }, viewports: results, findings });
+  writeJson(options.out, { status, url: options.url || null, config: options.config || null, generatedAt: new Date().toISOString(), browser: { name: options.browser, ...target, headless: options.headless }, options: { critical: options.critical, ignoreOverflow: options.ignoreOverflow, waitMs: options.waitMs, sampleMs: options.sampleMs, screenshotsDir: options.screenshotsDir || null }, viewports: results, findings });
   return 0;
 }
 
-main().catch((error) => { console.error(error.message); process.exitCode = 2; });
+main().then((code) => { process.exitCode = code; }).catch((error) => { console.error(error.message); process.exitCode = 2; });

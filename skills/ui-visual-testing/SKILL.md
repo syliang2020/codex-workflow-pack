@@ -19,7 +19,7 @@ description: Use when checking frontend page layout, spacing, overlap, clipping,
 | 需要客观扫描或回归自动化 | [自动化扫描](references/automated-scan.md)；需要截图基线或 CI 时再读取 [基线与 CI](references/baselines-and-ci.md) |
 | 视觉问题原因不清 | `superpowers:systematic-debugging`，再回到当前检查 |
 | UI 规范或视觉取舍不明确 | `ui-ux-pro-max`；项目规范和同类组件优先 |
-| Windows 本机 Playwright / MCP 运行问题 | `playwright-local-runtime` |
+| 准备实际浏览器操作或派发视觉子代理 | [浏览器选择与派发](references/browser-execution.md)；Windows 执行前读取已安装的 `playwright-local-runtime` |
 
 不要因为 skill 被触发就读取全部 reference。没有实际执行测试时，不读取报告模板、自动化扫描或基线资料，也不生成执行报告。
 
@@ -28,6 +28,7 @@ description: Use when checking frontend page layout, spacing, overlap, clipping,
 当用户直接调用 `$ui-visual-testing` 检查页面，除非用户另有说明，自动应用以下约定：
 
 - 只做视觉检查，不修改业务代码、测试代码或项目配置。
+- 用户指定浏览器时优先使用指定产品，不可用则报告阻塞，不擅自替换；未指定时通过 Playwright 新开本机 Google Chrome 可见窗口。此选择一并传给 `ui-ux-tester`，内置浏览器仅在用户指定或按 [降级约定](references/browser-execution.md) 说明后使用。
 - 以项目现有组件、同类页面和用户提供的设计参照作为视觉依据。
 - 检查用户指定的窗口、页面状态和重点区域；未指定时按风险选择代表性状态，并记录未覆盖项。
 - 分别报告静态视觉和交互过程的结论、参照、证据与缺陷。

@@ -1,7 +1,7 @@
 interface:
   display_name: "UI Visual Testing"
   short_description: "Check page layout and visual interaction stability"
-  default_prompt: "Use $ui-visual-testing to inspect this page's layout, visual states, and interaction stability; automatically use the read-only ui-ux-tester when authorized, do not modify code, save REPORT.md with linked evidence, and return the report link."
+  default_prompt: "Use $ui-visual-testing with the user-selected browser, or a new visible Google Chrome window via Playwright by default; delegate to the read-only ui-ux-tester when authorized and return the linked REPORT.md."
 
 policy:
   allow_implicit_invocation: true

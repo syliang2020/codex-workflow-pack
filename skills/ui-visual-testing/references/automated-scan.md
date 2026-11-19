@@ -6,6 +6,8 @@
 
 仓库内提供 `scripts/visual-scan.cjs`。它只依赖调用项目已经安装的 `playwright` 或 `@playwright/test`，不会自动安装依赖。运行方式：
 
+使用 `--browser` 遵从用户的浏览器选择；未指定时通过 Playwright 新开本机 Google Chrome 可见窗口。CI 或用户要求时显式加 `--headless`。指定产品或默认 Chrome 不可用时输出 `not-run` 并返回退出码 2，不自动换浏览器。浏览器选择和子代理策略见 [浏览器选择与派发](browser-execution.md)。
+
 ```powershell
 node skills/ui-visual-testing/scripts/visual-scan.cjs --url http://localhost:3000 --out .tmp/visual-scan.json
 ```
@@ -30,6 +32,8 @@ node skills/ui-visual-testing/scripts/visual-scan.cjs --config visual-matrix.jso
 - `--critical <selector>`：关键元素选择器，可重复指定；检查可见性、是否在视口内及中心点是否被其他元素覆盖。
 - `--ignore-overflow <selector>`：允许内部横向滚动的容器，可重复指定。
 - `--screenshots-dir <dir>`：存在候选时保存每个页面和 viewport 的截图，并把路径写入 JSON。
+- `--browser <name>`：支持 `chrome`（默认）、`edge`、`firefox`、`chromium`、`webkit`，对本次所有页面生效。Chrome/Edge 使用本机产品通道，其他引擎须已安装；不自动下载。WebKit 不等于 Safari；CLI 不支持的产品记录 `not-run`，由主代理检查其他可控制实际产品的入口。
+- `--headless`：显式使用所选浏览器的无界面模式，默认关闭；用于 CI 或用户指定的无界面执行。
 
 脚本输出 `status`、`url`、页面状态、viewport、horizontal overflow、critical element findings、overflow candidates、text-clipping candidates、CLS、position samples、screenshot、error 和 `notRunReason`。扫描发现是证据和候选，不自动等于视觉缺陷：合法浮层、固定列、内部滚动和应用专属层级要回到页面规范与人工复核。
 
