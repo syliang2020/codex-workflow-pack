@@ -51,6 +51,8 @@ direct-flow 不生成完整提示词，也不只输出流程卡片。它和 prom
 
 前端 / 全栈测试阶段按需接入 [ui-visual-testing](../ui-visual-testing/SKILL.md)，检查静态视觉和交互过程的视觉稳定性，不承担业务功能验收。功能测试依据需求和已确认预期独立执行；功能通过不能覆盖视觉失败。UI 规则与体验判断使用 `ui-ux-pro-max`，项目现有规范优先。独立视觉检查可直接调用该 skill。
 
+当用户明确调用视觉 skill，或 router 已进入获授权的前端 / 全栈视觉测试阶段时，默认自动启动只读 `ui-ux-tester`；`browser-debugger`、`qa-expert`、`test-automator` 和修复角色继续按条件启动。prompt-preview 和用户明确禁止子代理时不启动。
+
 ### prompt-preview
 
 提示词预览模式。

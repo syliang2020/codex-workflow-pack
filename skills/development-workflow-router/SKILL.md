@@ -16,6 +16,7 @@ description: Use when a user wants a Superpowers workflow for backend, frontend,
 - 需要选择 skill / subagent、生成阶段分工或派发任务时，读取 [角色职责与路由](references/agent-skill-routing.md)，按其中的完整职责表选择，不要求用户逐个指定角色。
 - 执行、审查、子代理回收和验收时再读取 `references/review-and-handoff.md`。
 - 涉及页面布局、样式或交互过程的视觉检查时读取 [ui-visual-testing](../ui-visual-testing/SKILL.md)。功能测试仍依据需求、契约与项目测试计划独立执行；纯后端不调用视觉 skill。
+- 视觉测试阶段在适用 `AGENTS.md` 已授权时默认启动只读 `ui-ux-tester`；用户明确禁止子代理、prompt-preview 或授权不足时由主 agent 执行并说明。
 
 ## Workflow 单一来源规则
 

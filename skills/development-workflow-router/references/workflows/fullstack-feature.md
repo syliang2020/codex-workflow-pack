@@ -207,7 +207,7 @@
 - 使用：
   - [ui-visual-testing](../../../ui-visual-testing/SKILL.md)（仅验证静态视觉和交互过程的视觉稳定性；功能测试另按需求和已确认预期执行）
   - `playwright-local-runtime`
-  - `ui-ux-tester`（页面可运行且需要用户流程验收或交互回归时，执行浏览器验证，不修改业务代码）
+  - `ui-ux-tester`（页面视觉测试阶段默认自动启动；只读执行视觉和交互过程检查，不修改业务代码、测试代码、配置或真实业务数据）
   - `browser-debugger`（浏览器验证失败、复现不稳定或需要浏览器证据定位原因时，只读诊断）
   - 项目测试命令
   - `superpowers:verification-before-completion`

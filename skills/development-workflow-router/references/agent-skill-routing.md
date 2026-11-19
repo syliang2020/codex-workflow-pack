@@ -15,7 +15,7 @@
 
 - 角色表覆盖本 skill 支持的 16 个专业角色，是职责与触发条件的单一来源；已安装不等于本次需要启动。
 - 每个阶段的“使用”字段记录：选择的角色、触发依据、输入与预期输出、读写范围，以及派发或由主 agent 承担的实际状态。未命中条件的角色不派发，无需为常规角色选择再次询问用户。
-- 先检查模式、授权和阶段是否允许。`prompt-preview` 只把条件分工写入提示词，不启动子代理；`review-only` 仅允许已授权的只读分析；`inline` 不派发实现型子代理。使用子代理的授权不替代设计和计划确认，也不自动改变已选择的执行方式。
+- 先检查模式、授权和阶段是否允许。`prompt-preview` 只把条件分工写入提示词，不启动子代理；`review-only` 仅允许已授权的只读分析；`inline` 不派发实现型子代理，但允许已授权视觉阶段自动启动只读 `ui-ux-tester`。使用子代理的授权不替代设计和计划确认，也不自动改变已选择的执行方式。
 - 同一项工作选择一个主要负责人；只有证据表明跨领域时再拆分协作。职责重叠时优先交接已有证据，不重复复现、重复审查或让多个实现者修改同一文件。
 - 浏览器角色使用当前可用且已授权的浏览器工具。工具或环境不可用时报告限制并按降级规则处理，不因角色文件中的工具示例自动安装依赖、启动服务或修改配置。
 
@@ -40,7 +40,7 @@
 | `security-auditor` | 鉴权、数据权限、敏感数据、上传、外部输入等存在需要专项核验的安全边界 | 相关设计门禁、编码后审查、review-only | 权限规则、信任边界、方案或 diff、验证证据 → 安全发现、风险、修复与测试建议 | 只读安全专项检查；不替代 `reviewer` 的通用审查，不擅自攻击生产环境或执行破坏性验证 |
 | `qa-expert` | 风险、跨模块、多状态或发布验收需要测试策划和覆盖分析 | 计划中的测试策划、测试结果与验收覆盖核对；独立测试或只读 QA 分析 | 规则、改动范围、环境与结果 → 测试矩阵、数据策略、覆盖缺口和验收条件 | 只读测试策划与结果分析，不修改业务或测试代码，不代替 reviewer 做通用代码审查，不将小改动扩大为全系统穷举 |
 | `test-automator` | 需要新增或改进自动化测试、fixtures 或回归脚本 | 已确认实现阶段的测试任务；独立测试中获准的脚本实现 | 测试计划、失败证据、已有框架 → 行为测试、数据准备、运行命令与执行证据 | 仅已授权的测试及必要配置范围，不修改业务代码、不新增未经确认依赖；router 内实现型派发仍限已授权的 subagent-driven，inline 由主 agent 实现 |
-| `ui-ux-tester` | 已有可运行页面，需要按已确认用户流程验收、交互回归或覆盖多个页面状态 | 前端 / 全栈浏览器测试与验收回归 | 验收标准、测试计划、可用环境 → 流程覆盖、复现步骤、脱敏证据、缺陷和未验证项 | 浏览器验证与证据记录，不修改业务代码；复现不稳定或原因不清时交给 `browser-debugger`，缺陷修复退回已确认实现阶段；影响真实数据的操作须在授权范围内 |
+| `ui-ux-tester` | 页面视觉测试阶段默认自动启动，或需要按已确认用户流程验收、交互回归和页面状态覆盖 | 前端 / 全栈浏览器测试与验收回归 | 验收标准、测试计划、可用环境 → 流程覆盖、视觉结论、复现步骤、脱敏证据和未验证项 | 只读浏览器验证与证据记录，不修改业务代码、测试代码、配置或真实业务数据；复现不稳定或原因不清时交给 `browser-debugger`，缺陷修复退回已确认实现阶段 |
 
 ## 阶段绑定规则
 
@@ -196,13 +196,13 @@ prompt-preview 默认不生成独立的【Skill / Subagent 路由】章节。
 下列路由中的执行技能按已确认方式二选一，专业角色只有在授权及阶段边界允许时才派发；inline 由主 agent 承担对应职责。编码后通用审查复用所选执行器的最终审查，不重复派发。
 
 - `backend-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`backend-feature-design-review`、`superpowers:writing-plans`、所选执行器（feature TDD）、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
-- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、所选执行器（feature TDD）、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`superpowers:verification-before-completion`。
-- `fullstack-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`ui-ux-pro-max`、`backend-feature-design-review`、`superpowers:writing-plans`、所选执行器（feature TDD）、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `frontend-feature`：`superpowers:brainstorming`、`ui-designer`、`ui-ux-pro-max`、`api-designer`（接口依赖确认时）、`superpowers:writing-plans`、所选执行器（feature TDD）、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`ui-visual-testing`、默认只读 `ui-ux-tester`、`superpowers:verification-before-completion`。
+- `fullstack-feature`：`superpowers:brainstorming`、`api-designer`、`sql-pro`（涉及数据库时）、`ui-designer`、`ui-ux-pro-max`、`backend-feature-design-review`、`superpowers:writing-plans`、所选执行器（feature TDD）、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`ui-visual-testing`、默认只读 `ui-ux-tester`。
 - `backend-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer` / `sql-pro` / `backend-feature-design-review`（按影响范围）、`superpowers:writing-plans`、所选执行器（bugfix TDD）、`superpowers:test-driven-development`、`spring-boot-engineer`、`reviewer`、`superpowers:verification-before-completion`。
-- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `browser-debugger`（只读复现定位）、`ui-ux-pro-max`、`superpowers:writing-plans`、所选执行器（bugfix TDD）、`superpowers:test-driven-development`、`frontend-developer` / `ui-fixer`（按修复范围选择）、`reviewer`、`playwright-local-runtime`、`ui-ux-tester`（用户流程回归时）。
-- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、所选执行器（全栈 bugfix TDD）、`superpowers:test-driven-development`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`。
+- `frontend-bugfix`：`superpowers:systematic-debugging`、`debugger` / `browser-debugger`（只读复现定位）、`ui-ux-pro-max`、`superpowers:writing-plans`、所选执行器（bugfix TDD）、`superpowers:test-driven-development`、`frontend-developer` / `ui-fixer`（按修复范围选择）、`reviewer`、`playwright-local-runtime`、`ui-visual-testing`、默认只读 `ui-ux-tester`。
+- `fullstack-bugfix`：`superpowers:systematic-debugging`、`debugger`、`api-designer`、`backend-feature-design-review`、`ui-ux-pro-max`、`sql-pro`（涉及数据库时）、`superpowers:writing-plans`、所选执行器（全栈 bugfix TDD）、`superpowers:test-driven-development`、`spring-boot-engineer`、`frontend-developer`、`reviewer`、`playwright-local-runtime`、`ui-visual-testing`、默认只读 `ui-ux-tester`。
 
-上述基础路由按职责表补充条件角色：feature 澄清或业务取舍使用 `product-manager`；后端 / 全栈架构取舍使用 `microservices-architect`；数据库性能问题使用 `database-optimizer`；安全专项使用 `security-auditor`；前端 / 全栈浏览器复现和诊断使用 `browser-debugger`，用户流程验收使用 `ui-ux-tester`。具体绑定位置见各 workflow，不在本文件重排阶段。
+上述基础路由按职责表补充条件角色：feature 澄清或业务取舍使用 `product-manager`；后端 / 全栈架构取舍使用 `microservices-architect`；数据库性能问题使用 `database-optimizer`；安全专项使用 `security-auditor`；前端 / 全栈浏览器复现和诊断使用 `browser-debugger`。前端 / 全栈视觉测试阶段默认启动只读 `ui-ux-tester`，除非适用规则禁止派发或用户明确要求不启动。具体绑定位置见各 workflow，不在本文件重排阶段。
 
 功能测试依据需求、契约和已确认预期策划执行，按风险使用 `qa-expert`，按已授权测试实现范围使用 `test-automator`。页面视觉检查使用 [ui-visual-testing](../../ui-visual-testing/SKILL.md)，单独报告静态视觉和交互过程的视觉稳定性，不代替功能验收。UI 规范及体验判断使用 `ui-ux-pro-max`，以项目标准和同类组件为准，不由通用建议自动引入重设计。独立测试不要求先进入 router。
 
