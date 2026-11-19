@@ -1,0 +1,7 @@
+interface:
+  display_name: "UI Visual Testing"
+  short_description: "Check page layout and visual interaction stability"
+  default_prompt: "Use $ui-visual-testing to inspect this page's layout, visual states, and interaction stability, then save a linked REPORT.md."
+
+policy:
+  allow_implicit_invocation: true
